@@ -14,8 +14,7 @@
         <module>application</module>
         <module>server</module>
         <module>network</module>
-        <module>client-swing</module>
-        <module>client-api</module>
+        <module>clients</module>
     </modules>
 
     <properties>
