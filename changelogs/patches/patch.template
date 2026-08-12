@@ -1,0 +1,36 @@
+<?xml verison="1.0" encoding="utf-8"?>
+<!DOCTYPE patch SYSTEM "patch.v2.dtd">
+<patch version="2">
+    <topic name="User">
+        <component ref="client-swing">
+            <category name="add">
+                <entry>bananas</entry>
+            </category>
+            <category name="ref">
+                <entry>oranges</entry>
+            </category>
+            <category name="fix">
+                <entry>bread</entry>
+            </category>
+            <category name="rem">
+                <breaking severity="major">
+                    <entry>strawberries</entry>
+                </breaking>
+                <breaking severity="minor">
+                    <entry>strawberries</entry>
+                </breaking>
+                <breaking severity="trivial">
+                    <entry>strawberries</entry>
+                </breaking>
+                <entry>apples</entry>
+            </category>
+        </component>
+    </topic>
+    <component ref="client-api"></component>
+    <component ref="server"></component>
+    <component ref="core"></component>
+    <component ref="application"></component>
+    <component ref="infrastructure"></component>
+    <component ref="network"></component>
+    <component ref="internal"></component>
+</patch>
