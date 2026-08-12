@@ -1,0 +1,67 @@
+name: Changelog Builder
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+
+jobs:
+  build:
+    name: Build Changelog
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Tools
+        shell: bash
+        run: |
+          REPO="TiJ-code/ChangelogTool"
+          TAG="releases/0.4.0"
+          API="https://api.github.com/repos/$REPO/releases/tags/$TAG"
+
+          AUTH_HEADER=()
+          if [ -n "${GITHUB_TOKEN:-}" ]; then
+            AUTH_HEADER=(-H "Authorization: Bearer $GITHUB_TOKEN")
+          fi
+
+          echo "Fetching release metadata for tag: $TAG"
+
+          JSON=$(curl -sSL "${AUTH_HEADER[@]}" "$API")
+
+          download_asset() {
+            local NAME="$1"
+
+            ID=$(echo "$JSON" | jq -r ".assets[] | select(.name==\"$NAME\") | .id")
+
+            if [ -z "$ID" ] || [ "$ID" = "null" ]; then
+              echo "Asset not found: $NAME"
+              exit 1
+            fi
+
+            echo "Downloading $NAME (asset id: $ID)"
+
+            curl -sSL \
+              "${AUTH_HEADER[@]}" \
+              -H "Accept: application/octet-stream" \
+              "https://api.github.com/repos/$REPO/releases/assets/$ID" \
+              -o "$NAME"
+          }
+
+          download_asset "ChangelogArchiver.tool"
+          download_asset "ChangelogMarkdownBuilder.tool"
+          download_asset "ChangelogPatchParser.tool"
+
+          chmod +x *.tool
+
+      - name: Build Changelog
+        run: |
+          ./ChangelogPatchParser.tool changelog_config.xml
+          ./ChangelogMarkdownBuilder.tool changelog_config.xml
+          ./ChangelogArchiver.tool
+
+      - name: Upload Changelog
+        uses: actions/upload-artifact@v4
+        with:
+          name: CHANGELOG
+          path: changelogs/CHANGELOG.md

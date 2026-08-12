@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE config SYSTEM "config.v3.dtd">
+<config version="3">
+  <versioning>
+    <rule name="maven">
+      <filename regex=".*/?pom\.xml"/>
+      <version regex="&lt;version&gt;([^&lt;]+)&lt;/version&gt;"/>
+    </rule>
+  </versioning>
+  <categories>
+    <category name="add">added</category>
+    <category name="ref">refactored</category>
+    <category name="fix">fixed</category>
+    <category name="rem">removed</category>
+  </categories>
+  <components>
+    <component id="application" name="Application Layer"/>
+    <component id="client-api" name="Client API"/>
+    <component id="client-swing" name="Desktop Client (Java Swing)"/>
+    <component id="core" name="Core API"/>
+    <component id="infrastructure" name="Infrastructure Library"/>
+    <component id="network" name="Networking Library"/>
+    <component id="server" name="Server"/>
+    <component id="internal" name="Internal / Workflow"/>
+  </components>
+  <topics>
+    <topic name="User">
+      <component-ref ref="client-swing"/>
+      <component-ref ref="server"/>
+    </topic>
+    <topic name="Technical">
+      <component-ref ref="client-api"/>
+      <component-ref ref="client-swing"/>
+      <component-ref ref="server"/>
+      <component-ref ref="core"/>
+      <component-ref ref="application"/>
+      <component-ref ref="infrastructure"/>
+      <component-ref ref="network"/>
+    </topic>
+    <topic name="Internal">
+      <component-ref ref="internal"/>
+    </topic>
+  </topics>
+  <breaking.changes>
+    <entry>major</entry>
+    <entry>minor</entry>
+    <entry>trivial</entry>
+  </breaking.changes>
+</config>
