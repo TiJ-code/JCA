@@ -1,3 +1,5 @@
+tij.jca.core.events
+tij.jca.core.events.exceptions
 tij.jca.core.ids
 tij.jca.core.storage
 tij.jca.core.storage.exceptions

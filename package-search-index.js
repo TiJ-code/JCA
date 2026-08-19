@@ -1,1 +1,1 @@
-packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html","k":"18"},{"l":"tij.jca.core.ids"},{"l":"tij.jca.core.storage"},{"l":"tij.jca.core.storage.exceptions"},{"l":"tij.jca.core.storage.page"}];updateSearchResults();
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html","k":"18"},{"l":"tij.jca.core.events"},{"l":"tij.jca.core.events.exceptions"},{"l":"tij.jca.core.ids"},{"l":"tij.jca.core.storage"},{"l":"tij.jca.core.storage.exceptions"},{"l":"tij.jca.core.storage.page"}];updateSearchResults();
