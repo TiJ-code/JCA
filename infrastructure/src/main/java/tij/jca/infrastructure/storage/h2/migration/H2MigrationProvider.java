@@ -4,8 +4,10 @@ import tij.jca.core.storage.exceptions.MigrationException;
 import tij.jca.core.storage.migration.IMigration;
 import tij.jca.core.storage.migration.IMigrationProvider;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -17,6 +19,10 @@ import java.util.regex.Pattern;
 public final class H2MigrationProvider implements IMigrationProvider {
     private static final Pattern MIGRATION_PATTERN = Pattern.compile(
             "^p(\\d+)__([a-zA-Z0-9_-]+)\\.sql$"
+    );
+
+    private static final Pattern BLOCK_COMMENT_PATTERN = Pattern.compile(
+            "/\\*.*?\\*/", Pattern.DOTALL
     );
 
     private final String resourcePath;
@@ -43,8 +49,7 @@ public final class H2MigrationProvider implements IMigrationProvider {
 
     @Override
     public List<IMigration> getMigrations() {
-        throw new MigrationException("Classpath migration discovery requires a migration index."
-            + " Please use the H2MigrationIndexProvider with an explicit resource list.");
+        return load(readIndex());
     }
 
     public List<IMigration> load(List<String> resourceNames) {
@@ -61,6 +66,45 @@ public final class H2MigrationProvider implements IMigrationProvider {
         );
 
         return List.copyOf(migrations);
+    }
+
+    private List<String> readIndex() {
+        try (InputStream input = classLoader.getResourceAsStream(indexResource)) {
+            if (input == null) {
+                throw new MigrationException(
+                        "Migration index resource not found: " + indexResource
+                );
+            }
+
+            List<String> resources = new ArrayList<>();
+
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))) {
+                String line;
+
+                while ((line = reader.readLine()) != null) {
+                    line = line.trim();
+
+                    if (line.isEmpty() || line.startsWith("#")) {
+                        continue;
+                    }
+
+                    resources.add(line);
+                }
+            }
+
+            if (resources.isEmpty()) {
+                throw new MigrationException(
+                        "Migration index resource is empty: " + indexResource
+                );
+            }
+
+            return List.copyOf(resources);
+        } catch (IOException e) {
+            throw new MigrationException(
+                    "Failed to read migration index resource: " + indexResource,
+                    e
+            );
+        }
     }
 
     private IMigration loadMigration(String resourceName) {
@@ -98,10 +142,18 @@ public final class H2MigrationProvider implements IMigrationProvider {
                 );
             }
 
-            String sql = new String(
+            String rawSql = new String(
                     input.readAllBytes(),
                     StandardCharsets.UTF_8
             );
+
+            String sql = stripComments(rawSql);
+
+            if (sql.isBlank()) {
+                throw new MigrationException(
+                        "Migration resource contains no executable SQL: " + resource
+                );
+            }
 
             return new H2SQLMigration(version, description, sql);
         } catch (IOException e) {
@@ -130,5 +182,22 @@ public final class H2MigrationProvider implements IMigrationProvider {
         }
 
         return normalized;
+    }
+
+    private static String stripComments(String sql) {
+        String withoutBlockComments = BLOCK_COMMENT_PATTERN.matcher(sql).replaceAll("");
+
+        StringBuilder result = new StringBuilder();
+
+        for (String line : withoutBlockComments.split("\n", -1)) {
+            int commentIndex = line.indexOf("--");
+            String cleaned = commentIndex >= 0 ? line.substring(0, commentIndex) : line;
+
+            if (!cleaned.isBlank()) {
+                result.append(cleaned).append('\n');
+            }
+        }
+
+        return result.toString();
     }
 }
