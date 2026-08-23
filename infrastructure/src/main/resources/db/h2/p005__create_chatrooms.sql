@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS chatrooms (
+    cId CHAR(32) PRIMARY KEY,
+    cName VARCHAR(255) NOT NULL
+);

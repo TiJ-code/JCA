@@ -3,6 +3,9 @@ package tij.jca.infrastructure.storage.h2;
 import org.h2.jdbcx.JdbcDataSource;
 import tij.jca.core.storage.IStorageEngine;
 import tij.jca.core.storage.IStorageTransaction;
+import tij.jca.core.storage.migration.MigrationRunner;
+import tij.jca.infrastructure.storage.h2.migration.H2MigrationProvider;
+import tij.jca.infrastructure.storage.h2.migration.H2MigrationStateStore;
 
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -11,6 +14,7 @@ import java.util.Objects;
 
 public class H2StorageEngine implements IStorageEngine {
     private final H2ConnectionProvider connectionProvider;
+    private final MigrationRunner migrationRunner;
 
     private boolean open;
 
@@ -32,6 +36,10 @@ public class H2StorageEngine implements IStorageEngine {
         dataSource.setPassword(password);
 
         this.connectionProvider = new H2ConnectionProvider(dataSource);
+        this.migrationRunner = new MigrationRunner(
+                new H2MigrationProvider("db/h2", "db/h2/migrations.list"),
+                new H2MigrationStateStore()
+        );
     }
 
     @Override
@@ -48,6 +56,13 @@ public class H2StorageEngine implements IStorageEngine {
                     "Failed to open H2 storage engine.",
                     e
             );
+        }
+
+        try {
+            migrationRunner.migrate(this);
+        } catch (RuntimeException e) {
+            close();
+            throw e;
         }
     }
 
