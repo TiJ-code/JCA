@@ -12,4 +12,13 @@ package tij.jca.core.storage.page;
  * @since 0.1.0
  * @author TiJ
  */
-public record PageOffset(int offset, int limit) {}
+public record PageOffset(int offset, int limit) {
+    public PageOffset {
+        if (offset < 0) {
+            throw new IllegalArgumentException("offset must not be negative");
+        }
+        if (limit <= 0) {
+            throw new IllegalArgumentException("limit must be positive");
+        }
+    }
+}

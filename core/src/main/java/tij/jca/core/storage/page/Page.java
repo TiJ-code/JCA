@@ -1,6 +1,7 @@
 package tij.jca.core.storage.page;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents a single page of results returned from a paginated storage
@@ -17,4 +18,8 @@ import java.util.List;
  * @since 0.1.0
  * @author TiJ
  */
-public record Page<T>(List<T> content, boolean hasNext) {}
+public record Page<T>(List<T> content, boolean hasNext) {
+    public Page {
+        content = List.copyOf(Objects.requireNonNull(content, "content"));
+    }
+}
