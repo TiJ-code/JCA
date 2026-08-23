@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class SQLCreateTableBuilder {
+public final class SQLCreateTableBuilder {
     private final List<SQLColumnDefinition> columns = new ArrayList<>();
     private final List<String> tableConstraints = new ArrayList<>();
     private final String table;
@@ -33,7 +33,7 @@ public class SQLCreateTableBuilder {
                     "Call column(name, type) before setting column attributes"
             );
         }
-        return columns.get(columns.size() - 1);
+        return columns.getLast();
     }
 
     public SQLCreateTableBuilder primaryKey() {
