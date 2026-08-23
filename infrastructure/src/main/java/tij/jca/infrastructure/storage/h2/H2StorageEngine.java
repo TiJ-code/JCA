@@ -1,15 +1,15 @@
 package tij.jca.infrastructure.storage.h2;
 
 import org.h2.jdbcx.JdbcDataSource;
-import tij.jca.core.storage.StorageEngine;
-import tij.jca.core.storage.StorageTransaction;
+import tij.jca.core.storage.IStorageEngine;
+import tij.jca.core.storage.IStorageTransaction;
 
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Objects;
 
-public class H2StorageEngine implements StorageEngine {
+public class H2StorageEngine implements IStorageEngine {
     private final H2ConnectionProvider connectionProvider;
 
     private boolean open;
@@ -57,7 +57,7 @@ public class H2StorageEngine implements StorageEngine {
     }
 
     @Override
-    public StorageTransaction beginTransaction() {
+    public IStorageTransaction beginTransaction() {
         ensureOpen();
 
         Connection connection = connectionProvider.getConnection();

@@ -1,12 +1,12 @@
 package tij.jca.infrastructure.storage.h2;
 
-import tij.jca.core.storage.StorageTransaction;
+import tij.jca.core.storage.IStorageTransaction;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Objects;
 
-public class H2StorageTransaction implements StorageTransaction {
+public final class H2StorageTransaction implements IStorageTransaction {
     private final Connection connection;
 
     private boolean completed;
@@ -16,7 +16,7 @@ public class H2StorageTransaction implements StorageTransaction {
         this.connection = Objects.requireNonNull(connection, "connection");
     }
 
-    Connection connection() {
+    public Connection connection() {
         ensureOpen();
         return connection;
     }

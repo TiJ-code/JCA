@@ -1,6 +1,6 @@
 package tij.jca.infrastructure.storage.h2.helper;
 
-public class SQLColumnDefinition {
+public final class SQLColumnDefinition {
     private final String name;
     private final String type;
 
