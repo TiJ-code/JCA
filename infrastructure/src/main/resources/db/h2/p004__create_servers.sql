@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS servers (
+    sId CHAR(32) PRIMARY KEY,
+    sName VARCHAR(255) NOT NULL
+);

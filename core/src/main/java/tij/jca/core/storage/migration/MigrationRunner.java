@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class MigrationRunner {
+public final class MigrationRunner {
     private final tij.jca.core.storage.migration.IMigrationProvider provider;
     private final IMigrationStateStore stateStore;
 

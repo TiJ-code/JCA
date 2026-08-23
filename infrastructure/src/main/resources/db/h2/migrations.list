@@ -1,0 +1,10 @@
+### this is automatically generated ###
+p001__create_users.sql
+p002__create_devices.sql
+p003__create_messages.sql
+p004__create_servers.sql
+p005__create_chatrooms.sql
+p006__create_user_device_mapping.sql
+p007__create_server_chatroom_mapping.sql
+p008__create_user_server_mapping.sql
+p009__create_message_chatroom_mapping.sql

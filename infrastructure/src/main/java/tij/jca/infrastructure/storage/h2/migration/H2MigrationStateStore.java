@@ -31,6 +31,13 @@ public final class H2MigrationStateStore implements IMigrationStateStore {
                         .notNull().defaultValue("CURRENT_TIMESTAMP")
                     .build();
 
+    private static final String STATEMENT__ENSURE_INTERNAL_VERSION_ROW =
+            "MERGE INTO " + H2DatabaseConstants.TABLE__JCA_SCHEMA_MIGRATIONS
+                    + " (" + H2DatabaseConstants.COLUMN__JCA_SCHEMA_MIGRATIONS__VERSION
+                    + ", " + H2DatabaseConstants.COLUMN__JCA_SCHEMA_MIGRATIONS__DESCRIPTION + ")"
+                    + " KEY (" + H2DatabaseConstants.COLUMN__JCA_SCHEMA_MIGRATIONS__VERSION + ")"
+                    + " VALUES (0, 'internal version')";
+
     private static final String STATEMENT__SELECT_VERSIONS_FROM_SCHEMA_MIGRATION_TABLE =
             SQLBuilder.select(H2DatabaseConstants.COLUMN__JCA_SCHEMA_MIGRATIONS__VERSION)
                     .from(H2DatabaseConstants.TABLE__JCA_SCHEMA_MIGRATIONS)
@@ -43,7 +50,6 @@ public final class H2MigrationStateStore implements IMigrationStateStore {
                             H2DatabaseConstants.COLUMN__JCA_SCHEMA_MIGRATIONS__VERSION,
                             H2DatabaseConstants.COLUMN__JCA_SCHEMA_MIGRATIONS__DESCRIPTION
                     )
-                    .values("?", "?")
                     .build();
 
     @Override
@@ -121,6 +127,7 @@ public final class H2MigrationStateStore implements IMigrationStateStore {
 
             try (Statement statement = connection.createStatement()) {
                 statement.execute(STATEMENT__CREATE_SCHEMA_MIGRATION_TABLE);
+                statement.execute(STATEMENT__ENSURE_INTERNAL_VERSION_ROW);
                 transaction.commit();
             } catch (SQLException e) {
                 throw new MigrationException(
