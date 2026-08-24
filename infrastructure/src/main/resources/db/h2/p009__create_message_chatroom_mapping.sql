@@ -1,3 +1,6 @@
+-- Creates the mapping between messages and chatrooms.
+-- @since 0.1.0
+-- @author TiJ
 CREATE TABLE IF NOT EXISTS message_chatroom_mapping (
   messageId CHAR(32) NOT NULL,
   chatroomId CHAR(32) NOT NULL,

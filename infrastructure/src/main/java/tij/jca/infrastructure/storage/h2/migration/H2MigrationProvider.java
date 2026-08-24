@@ -16,6 +16,15 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Loads H2 SQL migrations from classpath resources.
+ *
+ * <p>Migration resources use the {@code pVERSION__DESCRIPTION.sql} naming
+ * convention and are listed in an index resource.</p>
+ *
+ * @since 0.1.0
+ * @author TiJ
+ */
 public final class H2MigrationProvider implements IMigrationProvider {
     private static final Pattern MIGRATION_PATTERN = Pattern.compile(
             "^p(\\d+)__([a-zA-Z0-9_-]+)\\.sql$"
@@ -29,6 +38,12 @@ public final class H2MigrationProvider implements IMigrationProvider {
     private final String indexResource;
     private final ClassLoader classLoader;
 
+    /**
+     * Creates a provider using the current thread's context class loader.
+     *
+     * @param resourcePath directory containing migration resources
+     * @param indexResource resource listing migration file names
+     */
     public H2MigrationProvider(String resourcePath, String indexResource) {
         this(
                 resourcePath,
@@ -37,6 +52,15 @@ public final class H2MigrationProvider implements IMigrationProvider {
         );
     }
 
+    /**
+     * Creates a provider using the supplied class loader.
+     *
+     * @param resourcePath directory containing migration resources
+     * @param indexResource resource listing migration file names
+     * @param classLoader class loader used to read resources
+     * @throws NullPointerException if any argument is {@code null}
+     * @throws IllegalArgumentException if either path is blank
+     */
     public H2MigrationProvider(String resourcePath, String indexResource, ClassLoader classLoader) {
         this.resourcePath = normalizePath(
                 Objects.requireNonNull(resourcePath, "resourcePath")
@@ -47,11 +71,26 @@ public final class H2MigrationProvider implements IMigrationProvider {
         this.classLoader = Objects.requireNonNull(classLoader, "classLoader");
     }
 
+    /**
+     * Loads all migrations listed by the configured index resource.
+     *
+     * @return migrations sorted by ascending version
+     * @throws MigrationException if the index or a migration cannot be read
+     */
     @Override
     public List<IMigration> getMigrations() {
         return load(readIndex());
     }
 
+    /**
+     * Loads and sorts migrations from the supplied resource names.
+     *
+     * @param resourceNames migration resource names
+     * @return migrations sorted by ascending version
+     * @throws NullPointerException if {@code resourceNames} is {@code null}
+     * @throws MigrationException if a migration resource is invalid or cannot
+     *                               be read
+     */
     public List<IMigration> load(List<String> resourceNames) {
         Objects.requireNonNull(resourceNames, "resourceNames");
 
@@ -68,6 +107,12 @@ public final class H2MigrationProvider implements IMigrationProvider {
         return List.copyOf(migrations);
     }
 
+    /**
+     * Reads migration resource names from the configured index.
+     *
+     * @return non-empty migration resource names
+     * @throws MigrationException if the index is missing, empty, or unreadable
+     */
     private List<String> readIndex() {
         try (InputStream input = classLoader.getResourceAsStream(indexResource)) {
             if (input == null) {
@@ -107,6 +152,14 @@ public final class H2MigrationProvider implements IMigrationProvider {
         }
     }
 
+    /**
+     * Loads and parses one migration resource.
+     *
+     * @param resourceName resource name from the migration index
+     * @return the parsed migration
+     * @throws MigrationException if the resource name or SQL is invalid, or
+     *                               the resource cannot be read
+     */
     private IMigration loadMigration(String resourceName) {
         String fileName = resourceName.substring(
                 resourceName.lastIndexOf('/') + 1
@@ -164,26 +217,39 @@ public final class H2MigrationProvider implements IMigrationProvider {
         }
     }
 
+    /**
+     * Normalises a classpath resource path by removing surrounding slashes.
+     *
+     * @param path resource path to normalise
+     * @return normalised resource path
+     * @throws IllegalArgumentException if the normalised path is blank
+     */
     private static String normalizePath(String path) {
-        String normalized = path.trim();
+        String normalised = path.trim();
 
-        while (normalized.startsWith("/")) {
-            normalized = normalized.substring(1);
+        while (normalised.startsWith("/")) {
+            normalised = normalised.substring(1);
         }
 
-        while (normalized.endsWith("/")) {
-            normalized = normalized.substring(0, normalized.length() - 1);
+        while (normalised.endsWith("/")) {
+            normalised = normalised.substring(0, normalised.length() - 1);
         }
 
-        if (normalized.isBlank()) {
+        if (normalised.isBlank()) {
             throw new IllegalArgumentException(
                     "resourcePath must not be blank."
             );
         }
 
-        return normalized;
+        return normalised;
     }
 
+    /**
+     * Removes SQL block and line comments.
+     *
+     * @param sql SQL text to clean
+     * @return SQL text without comments
+     */
     private static String stripComments(String sql) {
         String withoutBlockComments = BLOCK_COMMENT_PATTERN.matcher(sql).replaceAll("");
 
