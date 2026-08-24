@@ -1,5 +1,11 @@
 package tij.jca.infrastructure.storage.h2.helper;
 
+/**
+ * Defines a column and its constraints for a CREATE TABLE statement.
+ *
+ * @since 0.1.0
+ * @author TiJ
+ */
 public final class SQLColumnDefinition {
     private final String name;
     private final String type;
@@ -11,11 +17,22 @@ public final class SQLColumnDefinition {
     String defaultValue;
     String references;
 
+    /**
+     * Creates a column definition.
+     *
+     * @param name column name
+     * @param type SQL column type
+     */
     SQLColumnDefinition(String name, String type) {
         this.name = name;
         this.type = type;
     }
 
+    /**
+     * Renders this column definition as SQL.
+     *
+     * @return SQL representation of this column definition
+     */
     String toSql() {
         StringBuilder sb = new StringBuilder(name).append(' ').append(type);
 

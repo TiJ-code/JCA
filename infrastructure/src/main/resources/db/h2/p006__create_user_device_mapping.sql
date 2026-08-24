@@ -1,3 +1,6 @@
+-- Creates the mapping between users and their client devices.
+-- @since 0.1.0
+-- @author TiJ
 CREATE TABLE IF NOT EXISTS user_device_mapping (
     userId CHAR(32) NOT NULL,
     deviceId CHAR(32) NOT NULL,

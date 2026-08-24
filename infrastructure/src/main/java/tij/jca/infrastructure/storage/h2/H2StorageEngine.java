@@ -12,16 +12,39 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Objects;
 
+/**
+ * H2-backed implementation of the JCA storage engine.
+ *
+ * <p>The engine manages file-based H2 connectivity and runs configured
+ * database migrations when opened.</p>
+ *
+ * @since 0.1.0
+ * @author TiJ
+ */
 public class H2StorageEngine implements IStorageEngine {
     private final H2ConnectionProvider connectionProvider;
     private final MigrationRunner migrationRunner;
 
     private boolean open;
 
+    /**
+     * Creates an H2 storage engine using the default {@code sa} user and
+     * an empty password.
+     *
+     * @param databasePath path to the H2 database
+     */
     public H2StorageEngine(Path databasePath) {
         this(databasePath, "sa", "");
     }
 
+    /**
+     * Creates an H2 storage engine with the supplied credentials.
+     *
+     * @param databasePath path to the H2 database
+     * @param username database user name
+     * @param password database password
+     * @throws NullPointerException if any argument is {@code null}
+     */
     public H2StorageEngine(Path databasePath, String username, String password) {
         Objects.requireNonNull(databasePath, "databasePath");
         Objects.requireNonNull(username, "username");
@@ -42,6 +65,12 @@ public class H2StorageEngine implements IStorageEngine {
         );
     }
 
+    /**
+     * Opens the H2 database and applies pending migrations.
+     *
+     * @throws IllegalStateException if the database cannot be opened or
+     *                               migrations cannot be applied
+     */
     @Override
     public void open() {
         if (open) {
@@ -66,11 +95,23 @@ public class H2StorageEngine implements IStorageEngine {
         }
     }
 
+    /**
+     * Determines whether this storage engine is open.
+     *
+     * @return {@code true} if the engine is open; {@code false} otherwise
+     */
     @Override
     public boolean isOpen() {
         return open;
     }
 
+    /**
+     * Begins a transaction with auto-commit disabled.
+     *
+     * @return a new H2 storage transaction
+     * @throws IllegalStateException if this engine is not open or a transaction
+     *                               cannot be started
+     */
     @Override
     public IStorageTransaction beginTransaction() {
         ensureOpen();
@@ -91,17 +132,32 @@ public class H2StorageEngine implements IStorageEngine {
         return new H2StorageTransaction(connection);
     }
 
+    /**
+     * Closes this engine.
+     *
+     * <p>After closing, new transactions cannot be started.</p>
+     */
     @Override
     public void close() {
         open = false;
     }
 
+    /**
+     * Ensures that this engine is open.
+     *
+     * @throws IllegalStateException if this engine is closed
+     */
     private void ensureOpen() {
         if (!open) {
             throw new IllegalStateException("H2 storage engine is not open.");
         }
     }
 
+    /**
+     * Closes a connection without masking the original failure.
+     *
+     * @param connection the connection to close
+     */
     private static void closeQuietly(Connection connection) {
         try {
             connection.close();

@@ -19,6 +19,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Stores applied H2 migration versions in the database.
+ *
+ * @since 0.1.0
+ * @author TiJ
+ */
 public final class H2MigrationStateStore implements IMigrationStateStore {
     private static final String STATEMENT__CREATE_SCHEMA_MIGRATION_TABLE =
             SQLBuilder.createTable(H2DatabaseConstants.TABLE__JCA_SCHEMA_MIGRATIONS)
@@ -52,6 +58,15 @@ public final class H2MigrationStateStore implements IMigrationStateStore {
                     )
                     .build();
 
+    /**
+     * Returns the versions recorded in the H2 migration state table.
+     *
+     * @param storageEngine H2 storage engine containing the migration state
+     * @return applied migration versions in ascending order
+     * @throws NullPointerException if {@code storageEngine} is {@code null}
+     * @throws MigrationException if the engine is not H2-backed or the state
+     *                            cannot be read
+     */
     @Override
     public List<Integer> getAppliedVersions(IStorageEngine storageEngine) {
         Objects.requireNonNull(storageEngine, "storageEngine");
@@ -91,6 +106,15 @@ public final class H2MigrationStateStore implements IMigrationStateStore {
         }
     }
 
+    /**
+     * Records a migration as applied in the current transaction.
+     *
+     * @param transaction transaction in which to record the migration
+     * @param migration migration to record
+     * @throws NullPointerException if either argument is {@code null}
+     * @throws MigrationException if the transaction is not H2-backed or the
+     *                            migration cannot be recorded
+     */
     @Override
     public void recordApplied(IStorageTransaction transaction, IMigration migration) {
         Objects.requireNonNull(transaction, "transaction");
@@ -119,6 +143,12 @@ public final class H2MigrationStateStore implements IMigrationStateStore {
         }
     }
 
+    /**
+     * Creates the migration state table and its internal version row.
+     *
+     * @param storageEngine H2 storage engine to initialise
+     * @throws MigrationException if the table cannot be initialised
+     */
     private void ensureTableExists(H2StorageEngine storageEngine) {
         try (IStorageTransaction transaction = storageEngine.beginTransaction()) {
             H2StorageTransaction h2Transaction = requireH2Transaction(transaction);
@@ -138,6 +168,13 @@ public final class H2MigrationStateStore implements IMigrationStateStore {
         }
     }
 
+    /**
+     * Converts a generic transaction to the H2 transaction implementation.
+     *
+     * @param transaction transaction to validate
+     * @return the H2 transaction
+     * @throws MigrationException if the transaction is not H2-backed
+     */
     private static H2StorageTransaction requireH2Transaction(IStorageTransaction transaction) {
         if (!(transaction instanceof H2StorageTransaction h2Transaction)) {
             throw new MigrationException(
