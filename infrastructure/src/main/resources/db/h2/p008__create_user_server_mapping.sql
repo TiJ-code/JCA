@@ -1,3 +1,6 @@
+-- Creates the mapping between users and servers, including display names.
+-- @since 0.1.0
+-- @author TiJ
 CREATE TABLE IF NOT EXISTS user_server_mapping (
     userId BIGINT NOT NULL,
     serverId BIGINT NOT NULL,
