@@ -9,5 +9,11 @@
                 <entry>combined storage repository contract for read and write operations</entry>
             </category>
         </component>
+        <component ref="infrastructure">
+            <category name="add">
+                <entry>H2 user, device, message, server, and chatroom row representations</entry>
+                <entry>H2 relationship row representations for users, devices, servers, chatrooms, and messages</entry>
+            </category>
+        </component>
     </topic>
 </patch>
