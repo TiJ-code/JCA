@@ -1,6 +1,5 @@
 <?xml verison="1.0" encoding="utf-8"?>
-<!DOCTYPE patch SYSTEM "patch.v2.dtd">
-<patch version="2">
+<patch version="1">
     <topic name="User">
         <component ref="client-swing">
             <category name="add">

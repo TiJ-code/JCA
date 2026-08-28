@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE config SYSTEM "config.v3.dtd">
-<config version="3">
+<config version="1">
   <versioning>
     <rule name="maven">
       <filename regex=".*/?pom\.xml"/>
