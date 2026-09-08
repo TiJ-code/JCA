@@ -24,6 +24,57 @@
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>tij.jca</groupId>
+            <artifactId>core</artifactId>
+            <version>0.1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>2.4.240</version>
+        </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>generate-migration-index</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <fileset id="migration.files"
+                                         dir="${project.basedir}/src/main/resources/db/h2"
+                                         includes="p*.sql">
+                                </fileset>
+
+                                <pathconvert property="migration.files.list"
+                                             refid="migration.files"
+                                             pathsep="${line.separator}">
+                                    <mapper>
+                                        <chainedmapper>
+                                            <flattenmapper/>
+                                        </chainedmapper>
+                                    </mapper>
+                                </pathconvert>
+
+                                <echo file="${project.basedir}/src/main/resources/db/h2/migrations.list"
+                                      message="### this is automatically generated ###${line.separator}${migration.files.list}"
+                                      append="false"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
