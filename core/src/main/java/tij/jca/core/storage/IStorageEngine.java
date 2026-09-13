@@ -45,7 +45,7 @@ public interface IStorageEngine extends AutoCloseable {
      */
     IStorageTransaction beginTransaction();
 
-    /**s
+    /**
      * Closes the storage engine and releases all resources associated within.
      *
      * <p>After this method returns, the storage engine should no longer be
