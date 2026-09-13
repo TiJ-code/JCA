@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<patch version="1">
+    <topic name="Technical">
+        <component ref="core">
+            <category name="add">
+                <entry>generic repository interface for common entity persistence</entry>
+                <entry>user repository interface with device association operations</entry>
+                <entry>device repository interface with user lookup support</entry>
+                <entry>message repository interface with chatroom association operations</entry>
+                <entry>server repository interface with user and chatroom relationship operations</entry>
+                <entry>chatroom repository interface with server and member lookup support</entry>
+            </category>
+            <category name="ref">
+                <entry>JavaDoc documentation for all repository interfaces and operations</entry>
+            </category>
+        </component>
+    </topic>
+</patch>
