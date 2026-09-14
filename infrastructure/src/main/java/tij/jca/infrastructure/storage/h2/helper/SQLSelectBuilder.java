@@ -21,6 +21,7 @@ public final class SQLSelectBuilder {
     private final List<String> orderBy = new ArrayList<>();
 
     private String table;
+    private String orderByDirection = "ASC";
     private Integer limit;
     private Integer offset;
     private boolean distinct;
@@ -142,13 +143,26 @@ public final class SQLSelectBuilder {
     }
 
     /**
-     * Adds ORDER BY columns.
+     * Adds ORDER BY columns ASC.
      *
      * @param columns columns to order by
      * @return this builder
      */
     public SQLSelectBuilder orderBy(String... columns) {
         this.orderBy.addAll(Arrays.asList(columns));
+        this.orderByDirection = "ASC";
+        return this;
+    }
+
+    /**
+     * Adds ORDER BY columns DSC.
+     *
+     * @param columns columns to order by
+     * @return this builder
+     */
+    public SQLSelectBuilder orderByDescending(String... columns) {
+        orderBy(columns);
+        this.orderByDirection = "DSC";
         return this;
     }
 
@@ -213,6 +227,10 @@ public final class SQLSelectBuilder {
 
         if (!orderBy.isEmpty()) {
             sql.append(" ORDER BY ").append(String.join(", ", orderBy));
+        }
+
+        if (!orderByDirection.isEmpty()) {
+            sql.append(" ").append(orderByDirection);
         }
 
         if (limit != null) {

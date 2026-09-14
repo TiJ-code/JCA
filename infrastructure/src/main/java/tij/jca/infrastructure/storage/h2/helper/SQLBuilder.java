@@ -40,4 +40,16 @@ public final class SQLBuilder {
     public static SQLCreateTableBuilder createTable(String table) {
         return new SQLCreateTableBuilder(table);
     }
+
+    public static SQLMergeBuilder mergeInto(String table) {
+        return new SQLMergeBuilder(table);
+    }
+
+    public static SQLUpdateBuilder update(String table) {
+        return new SQLUpdateBuilder(table);
+    }
+
+    public static SQLDeleteBuilder deleteFrom(String table) {
+        return new SQLDeleteBuilder(table);
+    }
 }
