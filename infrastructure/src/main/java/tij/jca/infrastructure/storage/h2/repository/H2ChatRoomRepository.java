@@ -17,7 +17,24 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * H2-backed implementation of {@link IChatRoomRepository}.
+ *
+ * <p>
+ * This repository persists chat room records, tracks which chat rooms belong to a
+ * specific server, and maintains the membership relationship between chat rooms
+ * and users in the underlying H2 database.
+ * </p>
+ *
+ * @since 0.1.0
+ * @author TiJ
+ */
 public final class H2ChatRoomRepository extends AbstractH2Repository implements IChatRoomRepository {
+    /**
+     * Creates a repository that uses the provided H2 transaction context.
+     *
+     * @param transaction the storage transaction used to access the database
+     */
     public H2ChatRoomRepository(H2StorageTransaction transaction) {
         super(transaction);
     }
@@ -176,6 +193,13 @@ public final class H2ChatRoomRepository extends AbstractH2Repository implements 
         );
     }
 
+    /**
+     * Maps the current row from the result set into a {@link ChatRoom} domain object.
+     *
+     * @param resultSet the result set positioned on a chat room record
+     * @return the mapped chat room instance
+     * @throws Exception if the row cannot be read
+     */
     private static ChatRoom readChatRoom(ResultSet resultSet) throws Exception {
         return new ChatRoom(
                 new ConversationID(resultSet.getString(H2DatabaseConstants.COLUMN__CHATROOMS__ID)),

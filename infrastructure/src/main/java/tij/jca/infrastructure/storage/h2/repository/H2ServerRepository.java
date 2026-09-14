@@ -18,7 +18,23 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * H2-backed implementation of {@link IServerRepository}.
+ *
+ * <p>
+ * This repository stores server records and maintains the membership and chatroom
+ * relationships between servers, users, and conversations.
+ * </p>
+ *
+ * @since 0.1.0
+ * @author TiJ
+ */
 public final class H2ServerRepository extends AbstractH2Repository implements IServerRepository {
+    /**
+     * Creates a repository that uses the provided H2 transaction context.
+     *
+     * @param transaction the storage transaction used to access the database
+     */
     public H2ServerRepository(H2StorageTransaction transaction) {
         super(transaction);
     }
@@ -194,6 +210,13 @@ public final class H2ServerRepository extends AbstractH2Repository implements IS
 
     }
 
+    /**
+     * Maps the current room from the result set into a {@link Server} domain object.
+     *
+     * @param resultSet the result set position on a server record
+     * @return the mapped server instance
+     * @throws Exception if the room cannot be read
+     */
     private static Server readServer(ResultSet resultSet) throws Exception {
         return new Server(
                 new ServerID(resultSet.getString(H2DatabaseConstants.COLUMN__SERVERS__ID)),
@@ -201,6 +224,15 @@ public final class H2ServerRepository extends AbstractH2Repository implements IS
         );
     }
 
+    /**
+     * Loads string identifiers for a relationship query.
+     *
+     * @param sql the SQL to execute
+     * @param value the value used in the WHERE clause
+     * @param column the column to read from the result set
+     * @return the matching identifiers
+     * @throws StorageException if the query fails
+     */
     private List<String> findIds(String sql, String value, String column) {
         List<String> ids = new ArrayList<>();
 

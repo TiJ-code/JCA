@@ -15,7 +15,23 @@ import java.sql.ResultSet;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * H2-backed implementation of {@link IMessageRepository}.
+ *
+ * <p>
+ * This repository stores message records and maintains the association between
+ * messages and the chat rooms they belong to.
+ * </p>
+ *
+ * @since 0.1.0
+ * @author TiJ
+ */
 public final class H2MessageRepository extends AbstractH2Repository implements IMessageRepository {
+    /**
+     * Creates a repository that uses the provided H2 transaction context.
+     *
+     * @param transaction the storage transaction used to access the database
+     */
     public H2MessageRepository(H2StorageTransaction transaction) {
         super(transaction);
     }
@@ -142,6 +158,13 @@ public final class H2MessageRepository extends AbstractH2Repository implements I
         executeUpdate(sql, statement -> statement.setString(1, messageID.id()));
     }
 
+    /**
+     * Maps the current row from the result set into a {@link Message} domain object.
+     *
+     * @param resultSet the result set positioned on a message record
+     * @return the mapped message instance
+     * @throws Exception if the row cannot be read
+     */
     private static Message readMessage(ResultSet resultSet) throws Exception {
         return new Message(
                 new MessageID(resultSet.getString(H2DatabaseConstants.COLUMN__MESSAGES__ID)),

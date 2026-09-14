@@ -17,7 +17,20 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * H2-backed implementation of {@link IUserRepository}.
+ *
+ * <p>
+ * This repository persists user records and manages the association between users
+ * and their devices in the underlying H2 database.
+ * </p>
+ */
 public final class H2UserRepository extends AbstractH2Repository implements IUserRepository {
+    /**
+     * Creates a repository that uses the provided H2 transaction context.
+     *
+     * @param transaction the storage transaction used to access the database
+     */
     public H2UserRepository(H2StorageTransaction transaction) {
         super(transaction);
     }
@@ -174,6 +187,13 @@ public final class H2UserRepository extends AbstractH2Repository implements IUse
         executeUpdate(sql, statement -> statement.setString(1, userID.id()));
     }
 
+    /**
+     * Maps the current row from the result set into a {@link User} domain object.
+     *
+     * @param resultSet the result set position on a user record
+     * @return the mapped user instance
+     * @throws Exception if the row cannot be read
+     */
     private User readUser(ResultSet resultSet) throws Exception {
         return new User(
                 new UserID(resultSet.getString(H2DatabaseConstants.COLUMN__USERS__ID)),
