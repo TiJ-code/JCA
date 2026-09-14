@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE patch SYSTEM "patch.v2.dtd">
+<patch version="2">
+    <topic name="Technical">
+        <component ref="infrastructure">
+            <category name="add">
+                <entry>file-based H2 storage engine with configurable database credentials and lifecycle management</entry>
+                <entry>JDBC transaction support with explicit commit, rollback, and automatic rollback on close</entry>
+                <entry>classpath migration provider with indexed resource loading, version ordering, and SQL comment handling</entry>
+                <entry>persistent migration state store for tracking applied schema versions in H2</entry>
+                <entry>fluent builders for parameterized SELECT, INSERT, and CREATE TABLE statements</entry>
+                <entry>initial H2 schema for users, devices, messages, servers, chatrooms, and their relationships</entry>
+            </category>
+        </component>
+    </topic>
+</patch>
