@@ -126,7 +126,7 @@ public final class H2ServerRepository extends AbstractH2Repository implements IS
     }
 
     @Override
-    public void attachChatRoom(ServerID serverId, ConversationID chatRoomId) {
+    public void attachConversation(ServerID serverId, ConversationID chatRoomId) {
         String sql = SQLBuilder
                 .insertInto(H2DatabaseConstants.TABLE__SERVER_CHATROOM_MAPPING)
                 .columns(

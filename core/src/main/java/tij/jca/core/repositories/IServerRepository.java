@@ -6,7 +6,6 @@ import tij.jca.core.ids.ServerID;
 import tij.jca.core.ids.UserID;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -62,7 +61,7 @@ public interface IServerRepository extends IRepository<Server, ServerID> {
      * @param serverId the server identifier
      * @param chatRoomId the chatroom identifier
      */
-    void attachChatRoom(ServerID serverId, ConversationID chatRoomId);
+    void attachConversation(ServerID serverId, ConversationID chatRoomId);
 
     /**
      * Removes a chatroom association from a server.
