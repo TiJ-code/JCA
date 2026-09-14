@@ -21,7 +21,7 @@ public final class SQLSelectBuilder {
     private final List<String> orderBy = new ArrayList<>();
 
     private String table;
-    private String orderByDirection = "ASC";
+    private String orderByDirection = "";
     private Integer limit;
     private Integer offset;
     private boolean distinct;

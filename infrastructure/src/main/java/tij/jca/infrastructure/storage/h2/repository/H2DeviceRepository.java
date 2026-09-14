@@ -14,10 +14,25 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
+/**
+ * H2-backed implementation of {@link IDeviceRepository}.
+ *
+ * <p>
+ * This repository stores device records and exposes the relationship between
+ * devices and the users who own or use them.
+ * </p>
+ *
+ * @since 0.1.0
+ * @author TiJ
+ */
 public final class H2DeviceRepository extends AbstractH2Repository implements IDeviceRepository {
+    /**
+     * Creates a repository that uses the provided H2 transaction context.
+     *
+     * @param transaction the storage transaction used to access the database
+     */
     public H2DeviceRepository(H2StorageTransaction transaction) {
         super(transaction);
     }
@@ -117,6 +132,13 @@ public final class H2DeviceRepository extends AbstractH2Repository implements ID
         executeUpdate(sql, statement -> statement.setString(1, deviceID.id()));
     }
 
+    /**
+     * Maps the current row from the result set into a {@link Device} domain object.
+     *
+     * @param resultSet the result set position on a device record
+     * @return the mapped device instance
+     * @throws Exception if the row cannot be read
+     */
     private static Device readDevice(ResultSet resultSet) throws Exception {
         return new Device(
                 new DeviceID(resultSet.getString(H2DatabaseConstants.COLUMN__DEVICES__ID)),
