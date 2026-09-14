@@ -2,8 +2,9 @@ package tij.jca.infrastructure.storage.h2.repository;
 
 import tij.jca.core.entities.ChatRoom;
 import tij.jca.core.ids.ConversationID;
+import tij.jca.core.ids.ServerID;
 import tij.jca.core.ids.UserID;
-import tij.jca.core.repositories.IChatRoomRepository;
+import tij.jca.core.repositories.IConversationRepository;
 import tij.jca.core.storage.exceptions.StorageException;
 import tij.jca.infrastructure.storage.h2.H2DatabaseConstants;
 import tij.jca.infrastructure.storage.h2.H2StorageTransaction;
@@ -18,7 +19,7 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * H2-backed implementation of {@link IChatRoomRepository}.
+ * H2-backed implementation of {@link IConversationRepository}.
  *
  * <p>
  * This repository persists chat room records, tracks which chat rooms belong to a
@@ -29,18 +30,18 @@ import java.util.Set;
  * @since 0.1.0
  * @author TiJ
  */
-public final class H2ChatRoomRepository extends AbstractH2Repository implements IChatRoomRepository {
+public final class H2ConversationRepository extends AbstractH2Repository implements IConversationRepository {
     /**
      * Creates a repository that uses the provided H2 transaction context.
      *
      * @param transaction the storage transaction used to access the database
      */
-    public H2ChatRoomRepository(H2StorageTransaction transaction) {
+    public H2ConversationRepository(H2StorageTransaction transaction) {
         super(transaction);
     }
 
     @Override
-    public List<ConversationID> findByServerId(String serverId) {
+    public List<ConversationID> findByServerId(ServerID serverId) {
         String sql = SQLBuilder
                 .select(H2DatabaseConstants.COLUMN__SERVER_CHATROOM_MAPPING__CHATROOM_ID)
                 .from(H2DatabaseConstants.TABLE__SERVER_CHATROOM_MAPPING)
@@ -50,7 +51,7 @@ public final class H2ChatRoomRepository extends AbstractH2Repository implements 
         List<ConversationID> chatRoomIds = new ArrayList<>();
 
         try (PreparedStatement statement = prepare(sql)) {
-            statement.setString(1, serverId);
+            statement.setString(1, serverId.id());
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {

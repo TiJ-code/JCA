@@ -2,6 +2,7 @@ package tij.jca.core.repositories;
 
 import tij.jca.core.entities.ChatRoom;
 import tij.jca.core.ids.ConversationID;
+import tij.jca.core.ids.ServerID;
 import tij.jca.core.ids.UserID;
 
 import java.util.List;
@@ -13,14 +14,14 @@ import java.util.Set;
  * @since 0.1.0
  * @author TiJ
  */
-public interface IChatRoomRepository extends IRepository<ChatRoom, ConversationID> {
+public interface IConversationRepository extends IRepository<ChatRoom, ConversationID> {
     /**
      * Finds chatrooms hosted by a server.
      *
      * @param serverId the server identifier
      * @return the server's chatroom identifiers
      */
-    List<ConversationID> findByServerId(String serverId);
+    List<ConversationID> findByServerId(ServerID serverId);
 
     /**
      * Finds users participating in a chatroom.
