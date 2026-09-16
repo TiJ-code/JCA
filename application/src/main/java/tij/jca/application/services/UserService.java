@@ -5,8 +5,7 @@ import tij.jca.core.entities.User;
 import tij.jca.core.ids.DeviceID;
 import tij.jca.core.ids.UUIDGen;
 import tij.jca.core.ids.UserID;
-import tij.jca.core.repositories.IDeviceRepository;
-import tij.jca.core.repositories.IUserRepository;
+import tij.jca.core.storage.ITransactionManager;
 import tij.jca.core.storage.exceptions.EntityNotFoundException;
 
 import java.util.List;
@@ -20,19 +19,16 @@ import java.util.Optional;
  * @author TiJ
  */
 public final class UserService {
-    private final IUserRepository userRepository;
-    private final IDeviceRepository deviceRepository;
+    private final ITransactionManager transactionManager;
 
     /**
-     * Creates a user service backed by the supplied repositories.
+     * Creates a user service backed by the supplied transaction manager.
      *
-     * @param userRepository the repository used to persist users
-     * @param deviceRepository the repository used to persist devices
-     * @throws NullPointerException if either repository is {@code null}
+     * @param transactionManager the manager used to execute user operations
+     * @throws NullPointerException if the transaction manager is {@code null}
      */
-    public UserService(IUserRepository userRepository, IDeviceRepository deviceRepository) {
-        this.userRepository = Objects.requireNonNull(userRepository, "userRepository");
-        this.deviceRepository = Objects.requireNonNull(deviceRepository, "deviceRepository");
+    public UserService(ITransactionManager transactionManager) {
+        this.transactionManager = Objects.requireNonNull(transactionManager, "transactionManager");
     }
 
     /**
@@ -44,19 +40,24 @@ public final class UserService {
      * @throws IllegalArgumentException if the username is already taken
      */
     public User registerUser(String username, String globalDisplayName) {
-        List<User> existing = userRepository.findByUsername(username);
+        return transactionManager.execute(scope -> {
+            List<User> existing =
+                    scope.users().findByUsername(username);
 
-        if (!existing.isEmpty()) {
-            throw new IllegalArgumentException("Username already exists: " + username);
-        }
+            if (!existing.isEmpty()) {
+                throw new IllegalArgumentException(
+                        "Username already exists: " + username
+                );
+            }
 
-        User user = new User(
-                new UserID(UUIDGen.random()),
-                username,
-                globalDisplayName
-        );
+            User user = new User(
+                    new UserID(UUIDGen.random()),
+                    username,
+                    globalDisplayName
+            );
 
-        return userRepository.save(user);
+            return scope.users().save(user);
+        });
     }
 
     /**
@@ -66,7 +67,9 @@ public final class UserService {
      * @return the matching user, if present
      */
     public Optional<User> findUser(UserID userId) {
-        return userRepository.findById(userId);
+        return transactionManager.execute(scope ->
+                scope.users().findById(userId)
+        );
     }
 
     /**
@@ -78,14 +81,25 @@ public final class UserService {
      * @throws EntityNotFoundException if the user does not exist
      */
     public User attachDevice(UserID userId, Device device) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User with ID " + userId + " not found."));
+        return transactionManager.execute(scope -> {
+            User user = scope.users()
+                    .findById(userId)
+                    .orElseThrow(() ->
+                            new EntityNotFoundException(
+                                    "User with ID " + userId + " not found."
+                            )
+                    );
 
-        deviceRepository.save(device);
-        userRepository.attachDevice(userId, device.id());
-        user.addDevice(device);
+            scope.devices().save(device);
+            scope.users().attachDevice(
+                    userId,
+                    device.id()
+            );
 
-        return userRepository.save(user);
+            user.addDevice(device);
+
+            return scope.users().save(user);
+        });
     }
 
     /**
@@ -96,10 +110,15 @@ public final class UserService {
      * @throws EntityNotFoundException if the user does not exist
      */
     public void detachDevice(UserID userId, DeviceID deviceId) {
-        if (userRepository.findById(userId).isEmpty()) {
-            throw new EntityNotFoundException("User with ID " + userId + " not found.");
-        }
+        transactionManager.execute(scope -> {
+            if (scope.users().findById(userId).isEmpty()) {
+                throw new EntityNotFoundException(
+                        "User with ID " + userId + " not found."
+                );
+            }
 
-        userRepository.detachDevice(userId, deviceId);
+            scope.users().detachDevice(userId, deviceId);
+            return null;
+        });
     }
 }

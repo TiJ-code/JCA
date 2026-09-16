@@ -5,7 +5,7 @@ import tij.jca.core.ids.ConversationID;
 import tij.jca.core.ids.ServerID;
 import tij.jca.core.ids.UUIDGen;
 import tij.jca.core.ids.UserID;
-import tij.jca.core.repositories.IConversationRepository;
+import tij.jca.core.storage.ITransactionManager;
 import tij.jca.core.storage.exceptions.EntityNotFoundException;
 
 import java.util.List;
@@ -19,16 +19,16 @@ import java.util.Optional;
  * @author TiJ
  */
 public final class ConversationService {
-    private final IConversationRepository conversationRepository;
+    private final ITransactionManager transactionManager;
 
     /**
-     * Creates a conversation service backed by the supplied repository.
+     * Creates a conversation service backed by the supplied transaction manager.
      *
-     * @param conversationRepository the repository used to persist conversations
-     * @throws NullPointerException if the repository is {@code null}
+     * @param transactionManager the manager used to execute conversation operations
+     * @throws NullPointerException if the transaction manager is {@code null}
      */
-    public ConversationService(IConversationRepository conversationRepository) {
-        this.conversationRepository = Objects.requireNonNull(conversationRepository, "conversationRepository");
+    public ConversationService(ITransactionManager transactionManager) {
+        this.transactionManager = Objects.requireNonNull(transactionManager, "transactionManager");
     }
 
     /**
@@ -38,8 +38,14 @@ public final class ConversationService {
      * @return the created conversation
      */
     public ChatRoom createConversation(String name) {
-        ChatRoom conversation = new ChatRoom(new ConversationID(UUIDGen.random()), name);
-        return conversationRepository.save(conversation);
+        return transactionManager.execute(scope -> {
+            ChatRoom conversation = new ChatRoom(
+                    new ConversationID(UUIDGen.random()),
+                    name
+            );
+
+            return scope.conversations().save(conversation);
+        });
     }
 
     /**
@@ -49,7 +55,9 @@ public final class ConversationService {
      * @return the matching conversation, if present
      */
     public Optional<ChatRoom> findChatRoom(ConversationID conversationId) {
-        return conversationRepository.findById(conversationId);
+        return transactionManager.execute(scope ->
+                scope.conversations().findById(conversationId)
+        );
     }
 
     /**
@@ -59,7 +67,9 @@ public final class ConversationService {
      * @return the server's chat room identifiers
      */
     public List<ConversationID> findByServerId(ServerID serverId) {
-        return conversationRepository.findByServerId(serverId);
+        return transactionManager.execute(scope ->
+                scope.conversations().findByServerId(serverId)
+        );
     }
 
     /**
@@ -70,10 +80,20 @@ public final class ConversationService {
      * @throws EntityNotFoundException if the conversation does not exist
      */
     public void addUser(ConversationID conversationId, UserID userId) {
-        if (!conversationRepository.existsById(conversationId)) {
-            throw new EntityNotFoundException("Conversation with ID " + conversationId + " not found.");
-        }
+        transactionManager.execute(scope -> {
+            if (!scope.conversations()
+                    .existsById(conversationId)) {
+                throw new EntityNotFoundException(
+                        "Conversation with ID " + conversationId + " not found."
+                );
+            }
 
-        conversationRepository.addUser(conversationId, userId);
+            scope.conversations().addUser(
+                    conversationId,
+                    userId
+            );
+
+            return null;
+        });
     }
 }
