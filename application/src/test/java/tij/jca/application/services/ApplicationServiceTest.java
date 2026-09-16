@@ -31,6 +31,7 @@ class ApplicationServiceTest {
     private FakeServerRepository fakeServerRepository;
     private FakeConversationRepository fakeConversationRepository;
     private FakeMessageRepository fakeMessageRepository;
+    private FakeTransactionManager transactionManager;
 
     @BeforeEach
     void setUp() {
@@ -40,10 +41,20 @@ class ApplicationServiceTest {
         fakeConversationRepository = new FakeConversationRepository();
         fakeMessageRepository = new FakeMessageRepository();
 
-        userService = new UserService(fakeUserRepository, fakeDeviceRepository);
-        serverService = new ServerService(fakeServerRepository);
-        conversationService = new ConversationService(fakeConversationRepository);
-        messageService = new MessageService(fakeMessageRepository);
+        transactionManager = new FakeTransactionManager(
+                new FakeTransactionScope(
+                        fakeUserRepository,
+                        fakeDeviceRepository,
+                        fakeServerRepository,
+                        fakeConversationRepository,
+                        fakeMessageRepository
+                )
+        );
+
+        userService = new UserService(transactionManager);
+        serverService = new ServerService(transactionManager);
+        conversationService = new ConversationService(transactionManager);
+        messageService = new MessageService(transactionManager);
     }
 
     @Test

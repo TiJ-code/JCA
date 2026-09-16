@@ -5,7 +5,7 @@ import tij.jca.core.ids.ConversationID;
 import tij.jca.core.ids.ServerID;
 import tij.jca.core.ids.UUIDGen;
 import tij.jca.core.ids.UserID;
-import tij.jca.core.repositories.IServerRepository;
+import tij.jca.core.storage.ITransactionManager;
 import tij.jca.core.storage.exceptions.EntityNotFoundException;
 
 import java.util.List;
@@ -19,16 +19,16 @@ import java.util.Optional;
  * @author TiJ
  */
 public final class ServerService {
-    private final IServerRepository serverRepository;
+    private final ITransactionManager transactionManager;
 
     /**
-     * Creates a server service backed by the supplied repository.
+     * Creates a server service backed by the supplied transaction manager.
      *
-     * @param serverRepository the repository used to persist servers
-     * @throws NullPointerException if the repository is {@code null}
+     * @param transactionManager the manager used to execute server operations
+     * @throws NullPointerException if the transaction manager is {@code null}
      */
-    public ServerService(IServerRepository serverRepository) {
-        this.serverRepository = Objects.requireNonNull(serverRepository, "serverRepository");
+    public ServerService(ITransactionManager transactionManager) {
+        this.transactionManager = Objects.requireNonNull(transactionManager, "transactionManager");
     }
 
     /**
@@ -38,8 +38,14 @@ public final class ServerService {
      * @return the created server
      */
     public Server createServer(String name) {
-        Server server = new Server(new ServerID(UUIDGen.random()), name);
-        return serverRepository.save(server);
+        return transactionManager.execute(scope -> {
+            Server server = new Server(
+                    new ServerID(UUIDGen.random()),
+                    name
+            );
+
+            return scope.servers().save(server);
+        });
     }
 
     /**
@@ -49,7 +55,9 @@ public final class ServerService {
      * @return the matching server, if present
      */
     public Optional<Server> findServer(ServerID serverId) {
-        return serverRepository.findById(serverId);
+        return transactionManager.execute(scope ->
+            scope.servers().findById(serverId)
+        );
     }
 
     /**
@@ -59,7 +67,9 @@ public final class ServerService {
      * @return all servers matching the provided name
      */
     public List<Server> findServersByName(String name) {
-        return serverRepository.findByName(name);
+        return transactionManager.execute(scope ->
+                scope.servers().findByName(name)
+        );
     }
 
     /**
@@ -70,11 +80,16 @@ public final class ServerService {
      * @throws EntityNotFoundException if the server does not exist
      */
     public void addUser(ServerID serverId, UserID userId) {
-        if (!serverRepository.existsById(serverId)) {
-            throw new EntityNotFoundException("Server with ID " + serverId + " not found.");
-        }
+        transactionManager.execute(scope -> {
+            if (!scope.servers().existsById(serverId)) {
+                throw new EntityNotFoundException(
+                        "Server with ID " + serverId + " not found."
+                );
+            }
 
-        serverRepository.addUser(serverId, userId);
+            scope.servers().addUser(serverId, userId);
+            return null;
+        });
     }
 
     /**
@@ -85,10 +100,19 @@ public final class ServerService {
      * @throws EntityNotFoundException if the server does not exist
      */
     public void attachConversation(ServerID serverId, ConversationID conversationId) {
-        if (!serverRepository.existsById(serverId)) {
-            throw new EntityNotFoundException("Server with ID " + serverId + " not found.");
-        }
+        transactionManager.execute(scope -> {
+            if (!scope.servers().existsById(serverId)) {
+                throw new EntityNotFoundException(
+                        "Server with ID " + serverId + " not found."
+                );
+            }
 
-        serverRepository.attachConversation(serverId, conversationId);
+            scope.servers().attachConversation(
+                    serverId,
+                    conversationId
+            );
+
+            return null;
+        });
     }
 }

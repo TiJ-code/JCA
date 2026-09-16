@@ -5,7 +5,7 @@ import tij.jca.core.ids.ConversationID;
 import tij.jca.core.ids.MessageID;
 import tij.jca.core.ids.UUIDGen;
 import tij.jca.core.ids.UserID;
-import tij.jca.core.repositories.IMessageRepository;
+import tij.jca.core.storage.ITransactionManager;
 import tij.jca.core.storage.exceptions.EntityNotFoundException;
 
 import java.time.Instant;
@@ -20,16 +20,16 @@ import java.util.Optional;
  * @author TiJ
  */
 public final class MessageService {
-    private final IMessageRepository messageRepository;
+    private final ITransactionManager transactionManager;
 
     /**
-     * Creates a message service backed by the supplied repository.
+     * Creates a message service backed by the supplied transaction manager.
      *
-     * @param messageRepository the repository used to persist messages
-     * @throws NullPointerException if the repository is {@code null}
+     * @param transactionManager the manager used to execute message operations
+     * @throws NullPointerException if the transaction manager is {@code null}
      */
-    public MessageService(IMessageRepository messageRepository) {
-        this.messageRepository = Objects.requireNonNull(messageRepository, "messageRepository");
+    public MessageService(ITransactionManager transactionManager) {
+        this.transactionManager = Objects.requireNonNull(transactionManager, "transactionManager");
     }
 
     /**
@@ -41,17 +41,22 @@ public final class MessageService {
      * @return the stored message
      */
     public Message sendMessage(ConversationID conversationId, UserID authorId, String text) {
-        Message message = new Message(
-                new MessageID(UUIDGen.random()),
-                authorId,
-                Instant.now(),
-                text
-        );
+        return transactionManager.execute(scope -> {
+            Message message = new Message(
+                    new MessageID(UUIDGen.random()),
+                    authorId,
+                    Instant.now(),
+                    text
+            );
 
-        messageRepository.save(message);
-        messageRepository.attachToChatRoom(message.id(), conversationId);
+            scope.messages().save(message);
+            scope.messages().attachToChatRoom(
+                    message.id(),
+                    conversationId
+            );
 
-        return message;
+            return message;
+        });
     }
 
     /**
@@ -61,7 +66,9 @@ public final class MessageService {
      * @return the matching message, if present
      */
     public Optional<Message> findMessage(MessageID messageId) {
-        return messageRepository.findById(messageId);
+        return transactionManager.execute(scope ->
+                scope.messages().findById(messageId)
+        );
     }
 
     /**
@@ -71,7 +78,9 @@ public final class MessageService {
      * @return the chat room's messages
      */
     public List<Message> findMessages(ConversationID conversationId) {
-        return messageRepository.findByChatRoomId(conversationId);
+        return transactionManager.execute(scope ->
+                scope.messages().findByChatRoomId(conversationId)
+        );
     }
 
     /**
@@ -82,11 +91,20 @@ public final class MessageService {
      * @throws EntityNotFoundException if the message does not exist
      */
     public void deleteMessage(MessageID messageId, ConversationID conversationId) {
-        if (!messageRepository.existsById(messageId)) {
-            throw new EntityNotFoundException("Message with ID " + messageId + " not found.");
-        }
+        transactionManager.execute(scope -> {
+            if (!scope.messages().existsById(messageId)) {
+                throw new EntityNotFoundException(
+                        "Message with ID " + messageId + " not found."
+                );
+            }
 
-        messageRepository.detachFromChatRoom(messageId, conversationId);
-        messageRepository.deleteById(messageId);
+            scope.messages().detachFromChatRoom(
+                    messageId,
+                    conversationId
+            );
+
+            scope.messages().deleteById(messageId);
+            return null;
+        });
     }
 }
