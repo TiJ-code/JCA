@@ -113,7 +113,7 @@ public class H2StorageEngine implements IStorageEngine {
      *                               cannot be started
      */
     @Override
-    public IStorageTransaction beginTransaction() {
+    public H2StorageTransaction beginTransaction() {
         ensureOpen();
 
         Connection connection = connectionProvider.getConnection();
