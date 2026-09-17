@@ -68,6 +68,7 @@ public final class SQLMergeBuilder {
 
         return "MERGE INTO "
                 + table
+                + " ("
                 + String.join(", ", columns)
                 + ") KEY ("
                 + String.join(", ", keyColumns)
