@@ -7,6 +7,8 @@ import tij.jca.core.ids.UUIDGen;
 import tij.jca.core.ids.UserID;
 import tij.jca.core.storage.ITransactionManager;
 import tij.jca.core.storage.exceptions.EntityNotFoundException;
+import tij.jca.logging.ILogger;
+import tij.jca.logging.LoggerFactory;
 
 import java.util.List;
 import java.util.Objects;
@@ -19,6 +21,8 @@ import java.util.Optional;
  * @author TiJ
  */
 public final class UserService {
+    private static final ILogger LOGGER = LoggerFactory.getLogger(UserService.class);
+
     private final ITransactionManager transactionManager;
 
     /**
@@ -40,6 +44,7 @@ public final class UserService {
      * @throws IllegalArgumentException if the username is already taken
      */
     public User registerUser(String username, String globalDisplayName) {
+        LOGGER.info("Registering user '{}'.", username);
         return transactionManager.execute(scope -> {
             List<User> existing =
                     scope.users().findByUsername(username);
@@ -67,6 +72,7 @@ public final class UserService {
      * @return the matching user, if present
      */
     public Optional<User> findUser(UserID userId) {
+        LOGGER.debug("Finding user '{}'.", userId);
         return transactionManager.execute(scope ->
                 scope.users().findById(userId)
         );
@@ -81,6 +87,11 @@ public final class UserService {
      * @throws EntityNotFoundException if the user does not exist
      */
     public User attachDevice(UserID userId, Device device) {
+        LOGGER.info(
+                "Attaching device '{}' to user '{}'.",
+                device.id(),
+                userId
+        );
         return transactionManager.execute(scope -> {
             User user = scope.users()
                     .findById(userId)
@@ -110,6 +121,11 @@ public final class UserService {
      * @throws EntityNotFoundException if the user does not exist
      */
     public void detachDevice(UserID userId, DeviceID deviceId) {
+        LOGGER.info(
+                "Detaching device '{}' from user '{}'.",
+                deviceId,
+                userId
+        );
         transactionManager.execute(scope -> {
             if (scope.users().findById(userId).isEmpty()) {
                 throw new EntityNotFoundException(

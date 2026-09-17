@@ -39,6 +39,7 @@ public final class H2DeviceRepository extends AbstractH2Repository implements ID
 
     @Override
     public List<Device> findByUserId(UserID userId) {
+        logger.debug("Finding devices for user '{}'.", userId);
         String sql = SQLBuilder
                 .select(
                         "d." + H2DatabaseConstants.COLUMN__DEVICES__ID,
@@ -71,6 +72,7 @@ public final class H2DeviceRepository extends AbstractH2Repository implements ID
 
     @Override
     public Device save(Device device) {
+        logger.debug("Saving device '{}'.", device.id());
         String sql = SQLBuilder
                 .mergeInto(H2DatabaseConstants.TABLE__DEVICES)
                 .columns(H2DatabaseConstants.COLUMN__DEVICES__ID, H2DatabaseConstants.COLUMN__DEVICES__TYPE)
@@ -87,6 +89,7 @@ public final class H2DeviceRepository extends AbstractH2Repository implements ID
 
     @Override
     public Optional<Device> findById(DeviceID deviceID) {
+        logger.debug("Finding device '{}'.", deviceID);
         String sql = SQLBuilder
                 .select(
                         H2DatabaseConstants.COLUMN__DEVICES__ID,
@@ -113,6 +116,7 @@ public final class H2DeviceRepository extends AbstractH2Repository implements ID
 
     @Override
     public boolean existsById(DeviceID deviceID) {
+        logger.debug("Checking whether device '{}' exists.", deviceID);
         String sql = SQLBuilder
                 .select("1")
                 .from(H2DatabaseConstants.TABLE__DEVICES)
@@ -124,6 +128,7 @@ public final class H2DeviceRepository extends AbstractH2Repository implements ID
 
     @Override
     public void deleteById(DeviceID deviceID) {
+        logger.debug("Deleting device '{}'.", deviceID);
         String sql = SQLBuilder
                 .deleteFrom(H2DatabaseConstants.TABLE__DEVICES)
                 .where(H2DatabaseConstants.COLUMN__DEVICES__ID + " = ?")

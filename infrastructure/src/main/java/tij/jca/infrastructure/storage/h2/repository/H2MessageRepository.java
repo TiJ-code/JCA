@@ -38,6 +38,7 @@ public final class H2MessageRepository extends AbstractH2Repository implements I
 
     @Override
     public List<Message> findByChatRoomId(ConversationID chatRoomId) {
+        logger.debug("Finding messages for conversation '{}'.", chatRoomId);
         String sql = SQLBuilder
                 .select(
                         "m." + H2DatabaseConstants.COLUMN__MESSAGES__ID,
@@ -58,6 +59,11 @@ public final class H2MessageRepository extends AbstractH2Repository implements I
 
     @Override
     public void attachToChatRoom(MessageID messageID, ConversationID chatRoomId) {
+        logger.debug(
+                "Attaching message '{}' to conversation '{}'.",
+                messageID,
+                chatRoomId
+        );
         String sql = SQLBuilder
                 .insertInto(H2DatabaseConstants.TABLE__MESSAGE_CHATROOM_MAPPING)
                 .columns(
@@ -74,6 +80,11 @@ public final class H2MessageRepository extends AbstractH2Repository implements I
 
     @Override
     public void detachFromChatRoom(MessageID messageID, ConversationID chatRoomId) {
+        logger.debug(
+                "Detaching message '{}' from conversation '{}'.",
+                messageID,
+                chatRoomId
+        );
         String sql = SQLBuilder
                 .deleteFrom(H2DatabaseConstants.TABLE__MESSAGE_CHATROOM_MAPPING)
                 .where(H2DatabaseConstants.COLUMN__MESSAGE_CHATROOM_MAPPING__MESSAGE_ID + " = ?")
@@ -88,6 +99,7 @@ public final class H2MessageRepository extends AbstractH2Repository implements I
 
     @Override
     public Message save(Message message) {
+        logger.debug("Saving message '{}'.", message.id());
         String sql = SQLBuilder
                 .mergeInto(H2DatabaseConstants.TABLE__MESSAGES)
                 .columns(
@@ -111,6 +123,7 @@ public final class H2MessageRepository extends AbstractH2Repository implements I
 
     @Override
     public Optional<Message> findById(MessageID messageID) {
+        logger.debug("Finding message '{}'.", messageID);
         String sql = SQLBuilder
                 .select(
                         H2DatabaseConstants.COLUMN__MESSAGES__ID,
@@ -139,6 +152,7 @@ public final class H2MessageRepository extends AbstractH2Repository implements I
 
     @Override
     public boolean existsById(MessageID messageID) {
+        logger.debug("Checking whether message '{}' exists.", messageID);
         String sql = SQLBuilder
                 .select("1")
                 .from(H2DatabaseConstants.TABLE__MESSAGES)
@@ -150,6 +164,7 @@ public final class H2MessageRepository extends AbstractH2Repository implements I
 
     @Override
     public void deleteById(MessageID messageID) {
+        logger.debug("Deleting message '{}'.", messageID);
         String sql = SQLBuilder
                 .deleteFrom(H2DatabaseConstants.TABLE__MESSAGES)
                 .where(H2DatabaseConstants.COLUMN__MESSAGES__ID + " = ?")

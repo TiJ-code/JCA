@@ -7,6 +7,8 @@ import tij.jca.core.ids.UUIDGen;
 import tij.jca.core.ids.UserID;
 import tij.jca.core.storage.ITransactionManager;
 import tij.jca.core.storage.exceptions.EntityNotFoundException;
+import tij.jca.logging.ILogger;
+import tij.jca.logging.LoggerFactory;
 
 import java.time.Instant;
 import java.util.List;
@@ -20,6 +22,8 @@ import java.util.Optional;
  * @author TiJ
  */
 public final class MessageService {
+    private static final ILogger LOGGER = LoggerFactory.getLogger(MessageService.class);
+
     private final ITransactionManager transactionManager;
 
     /**
@@ -41,6 +45,11 @@ public final class MessageService {
      * @return the stored message
      */
     public Message sendMessage(ConversationID conversationId, UserID authorId, String text) {
+        LOGGER.info(
+                "Sending message from user '{}' to conversation '{}'.",
+                authorId,
+                conversationId
+        );
         return transactionManager.execute(scope -> {
             Message message = new Message(
                     new MessageID(UUIDGen.random()),
@@ -66,6 +75,7 @@ public final class MessageService {
      * @return the matching message, if present
      */
     public Optional<Message> findMessage(MessageID messageId) {
+        LOGGER.debug("Finding message '{}'.", messageId);
         return transactionManager.execute(scope ->
                 scope.messages().findById(messageId)
         );
@@ -78,6 +88,7 @@ public final class MessageService {
      * @return the chat room's messages
      */
     public List<Message> findMessages(ConversationID conversationId) {
+        LOGGER.debug("Finding messages for conversation '{}'.", conversationId);
         return transactionManager.execute(scope ->
                 scope.messages().findByChatRoomId(conversationId)
         );
@@ -91,6 +102,11 @@ public final class MessageService {
      * @throws EntityNotFoundException if the message does not exist
      */
     public void deleteMessage(MessageID messageId, ConversationID conversationId) {
+        LOGGER.info(
+                "Deleting message '{}' from conversation '{}'.",
+                messageId,
+                conversationId
+        );
         transactionManager.execute(scope -> {
             if (!scope.messages().existsById(messageId)) {
                 throw new EntityNotFoundException(
