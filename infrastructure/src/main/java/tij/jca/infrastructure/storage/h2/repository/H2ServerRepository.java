@@ -41,6 +41,7 @@ public final class H2ServerRepository extends AbstractH2Repository implements IS
 
     @Override
     public List<Server> findByName(String name) {
+        logger.debug("Finding servers by name '{}'.", name);
         String sql = SQLBuilder
                 .select(
                         H2DatabaseConstants.COLUMN__SERVERS__ID,
@@ -69,6 +70,7 @@ public final class H2ServerRepository extends AbstractH2Repository implements IS
 
     @Override
     public Set<UserID> findUserIds(ServerID serverId) {
+        logger.debug("Finding users for server '{}'.", serverId);
         String sql = SQLBuilder
                 .select(H2DatabaseConstants.COLUMN__USER_SERVER_MAPPING__USER_ID)
                 .from(H2DatabaseConstants.TABLE__USER_SERVER_MAPPING)
@@ -83,6 +85,7 @@ public final class H2ServerRepository extends AbstractH2Repository implements IS
 
     @Override
     public List<ConversationID> findChatRoomIds(ServerID serverId) {
+        logger.debug("Finding conversations for server '{}'.", serverId);
         String sql = SQLBuilder
                 .select(H2DatabaseConstants.COLUMN__SERVER_CHATROOM_MAPPING__CHATROOM_ID)
                 .from(H2DatabaseConstants.TABLE__SERVER_CHATROOM_MAPPING)
@@ -97,6 +100,11 @@ public final class H2ServerRepository extends AbstractH2Repository implements IS
 
     @Override
     public void addUser(ServerID serverId, UserID userId) {
+        logger.debug(
+                "Adding user '{}' to server '{}'.",
+                userId,
+                serverId
+        );
         String sql = SQLBuilder
                 .insertInto(H2DatabaseConstants.TABLE__USER_SERVER_MAPPING)
                 .columns(
@@ -113,6 +121,11 @@ public final class H2ServerRepository extends AbstractH2Repository implements IS
 
     @Override
     public void removeUser(ServerID serverId, UserID userId) {
+        logger.debug(
+                "Removing user '{}' from server '{}'.",
+                userId,
+                serverId
+        );
         String sql = SQLBuilder
                 .deleteFrom(H2DatabaseConstants.TABLE__USER_SERVER_MAPPING)
                 .where(H2DatabaseConstants.COLUMN__USER_SERVER_MAPPING__SERVER_ID + " = ?")
@@ -127,6 +140,11 @@ public final class H2ServerRepository extends AbstractH2Repository implements IS
 
     @Override
     public void attachConversation(ServerID serverId, ConversationID chatRoomId) {
+        logger.debug(
+                "Attaching conversation '{}' to server '{}'.",
+                chatRoomId,
+                serverId
+        );
         String sql = SQLBuilder
                 .insertInto(H2DatabaseConstants.TABLE__SERVER_CHATROOM_MAPPING)
                 .columns(
@@ -143,6 +161,11 @@ public final class H2ServerRepository extends AbstractH2Repository implements IS
 
     @Override
     public void detachChatRoom(ServerID serverId, ConversationID chatRoomId) {
+        logger.debug(
+                "Detaching conversation '{}' from server '{}'.",
+                chatRoomId,
+                serverId
+        );
         String sql = SQLBuilder
                 .deleteFrom(H2DatabaseConstants.TABLE__SERVER_CHATROOM_MAPPING)
                 .where(H2DatabaseConstants.COLUMN__SERVER_CHATROOM_MAPPING__SERVER_ID + " = ?")
@@ -157,6 +180,7 @@ public final class H2ServerRepository extends AbstractH2Repository implements IS
 
     @Override
     public Server save(Server server) {
+        logger.debug("Saving server '{}'.", server.id());
         String sql = SQLBuilder
                 .mergeInto(H2DatabaseConstants.TABLE__SERVERS)
                 .columns(
@@ -176,6 +200,7 @@ public final class H2ServerRepository extends AbstractH2Repository implements IS
 
     @Override
     public Optional<Server> findById(ServerID serverID) {
+        logger.debug("Finding server '{}'.", serverID);
         String sql = SQLBuilder
                 .select(
                         H2DatabaseConstants.COLUMN__SERVERS__ID,
@@ -202,11 +227,13 @@ public final class H2ServerRepository extends AbstractH2Repository implements IS
 
     @Override
     public boolean existsById(ServerID serverID) {
+        logger.debug("Checking whether server '{}' exists.", serverID);
         return false;
     }
 
     @Override
     public void deleteById(ServerID serverID) {
+        logger.debug("Deleting server '{}'.", serverID);
 
     }
 

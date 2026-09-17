@@ -4,6 +4,8 @@ import tij.jca.core.storage.ITransactionManager;
 import tij.jca.core.storage.ITransactionScope;
 import tij.jca.core.storage.TransactionPropagation;
 import tij.jca.core.storage.TransactionWork;
+import tij.jca.logging.ILogger;
+import tij.jca.logging.LoggerFactory;
 
 import java.util.Objects;
 
@@ -31,6 +33,8 @@ import java.util.Objects;
  * @author TiJ
  */
 public final class H2TransactionManager implements ITransactionManager {
+    private static final ILogger LOGGER = LoggerFactory.getLogger(H2TransactionManager.class);
+
     private final H2StorageEngine storageEngine;
 
     private final ThreadLocal<ITransactionScope> currentScope = new ThreadLocal<>();
@@ -58,11 +62,34 @@ public final class H2TransactionManager implements ITransactionManager {
         ITransactionScope existingScope = currentScope.get();
 
         if (propagation == TransactionPropagation.NEVER && existingScope != null) {
+            LOGGER.warn(
+                    "Rejected transaction work with NEVER propagation because "
+                            + "a transaction is already active."
+            );
             throw new IllegalStateException("A transaction is already active.");
         }
 
         if (propagation == TransactionPropagation.REQUIRED && existingScope != null) {
+            LOGGER.debug(
+                    "Joining existing H2 transaction with REQUIRED propagation."
+            );
             return work.execute(existingScope);
+        }
+
+        if (propagation == TransactionPropagation.REQUIRES_NEW
+                && existingScope != null) {
+            LOGGER.debug(
+                    "Suspending existing H2 transaction for REQUIRES_NEW work."
+            );
+
+            currentScope.remove();
+
+            try {
+                return executeNew(work);
+            } finally {
+                currentScope.set(existingScope);
+                LOGGER.debug("Resumed suspended H2 transaction.");
+            }
         }
 
         return executeNew(work);
@@ -77,6 +104,8 @@ public final class H2TransactionManager implements ITransactionManager {
      */
     private <T> T executeNew(TransactionWork<T> work) {
         try (H2StorageTransaction transaction = storageEngine.beginTransaction()) {
+            LOGGER.debug("Executing work in a new H2 transaction.");
+
             ITransactionScope scope = new H2TransactionScope(transaction);
 
             currentScope.set(scope);
@@ -84,9 +113,11 @@ public final class H2TransactionManager implements ITransactionManager {
             try {
                 T result = work.execute(scope);
                 transaction.commit();
+                LOGGER.debug("H2 transaction work committed.");
                 return result;
             } catch (RuntimeException | Error failure) {
                 rollback(transaction, failure);
+                LOGGER.error(failure, "H2 transaction work failed.");
                 throw failure;
             } finally {
                 currentScope.remove();
@@ -104,7 +135,12 @@ public final class H2TransactionManager implements ITransactionManager {
     private static void rollback(H2StorageTransaction transaction, Throwable originalFailure) {
         try {
             transaction.rollback();
+            LOGGER.debug("H2 transaction work rolled back.");
         } catch (RuntimeException rollbackFailure) {
+            LOGGER.error(
+                    rollbackFailure,
+                    "Failed to roll back H2 transaction work."
+            );
             originalFailure.addSuppressed(rollbackFailure);
         }
     }

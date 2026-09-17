@@ -7,6 +7,8 @@ import tij.jca.core.ids.UUIDGen;
 import tij.jca.core.ids.UserID;
 import tij.jca.core.storage.ITransactionManager;
 import tij.jca.core.storage.exceptions.EntityNotFoundException;
+import tij.jca.logging.ILogger;
+import tij.jca.logging.LoggerFactory;
 
 import java.util.List;
 import java.util.Objects;
@@ -19,6 +21,8 @@ import java.util.Optional;
  * @author TiJ
  */
 public final class ConversationService {
+    private static final ILogger LOGGER = LoggerFactory.getLogger(ConversationService.class);
+
     private final ITransactionManager transactionManager;
 
     /**
@@ -38,6 +42,7 @@ public final class ConversationService {
      * @return the created conversation
      */
     public ChatRoom createConversation(String name) {
+        LOGGER.info("Creating conversation '{}'.", name);
         return transactionManager.execute(scope -> {
             ChatRoom conversation = new ChatRoom(
                     new ConversationID(UUIDGen.random()),
@@ -55,6 +60,7 @@ public final class ConversationService {
      * @return the matching conversation, if present
      */
     public Optional<ChatRoom> findChatRoom(ConversationID conversationId) {
+        LOGGER.debug("Finding conversation '{}'.", conversationId);
         return transactionManager.execute(scope ->
                 scope.conversations().findById(conversationId)
         );
@@ -67,6 +73,7 @@ public final class ConversationService {
      * @return the server's chat room identifiers
      */
     public List<ConversationID> findByServerId(ServerID serverId) {
+        LOGGER.debug("Finding conversations for server '{}'.", serverId);
         return transactionManager.execute(scope ->
                 scope.conversations().findByServerId(serverId)
         );
@@ -80,6 +87,11 @@ public final class ConversationService {
      * @throws EntityNotFoundException if the conversation does not exist
      */
     public void addUser(ConversationID conversationId, UserID userId) {
+        LOGGER.info(
+                "Adding user '{}' to conversation '{}'.",
+                userId,
+                conversationId
+        );
         transactionManager.execute(scope -> {
             if (!scope.conversations()
                     .existsById(conversationId)) {

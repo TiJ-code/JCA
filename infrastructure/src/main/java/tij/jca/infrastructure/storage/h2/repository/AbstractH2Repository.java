@@ -4,6 +4,8 @@ import tij.jca.core.storage.exceptions.DuplicateEntryException;
 import tij.jca.core.storage.exceptions.EntityNotFoundException;
 import tij.jca.core.storage.exceptions.StorageException;
 import tij.jca.infrastructure.storage.h2.H2StorageTransaction;
+import tij.jca.logging.ILogger;
+import tij.jca.logging.LoggerFactory;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -25,6 +27,7 @@ import java.util.Objects;
  */
 abstract class AbstractH2Repository {
     protected final H2StorageTransaction transaction;
+    protected final ILogger logger;
 
     /**
      * Creates a repository bound to the provided transaction context.
@@ -34,6 +37,7 @@ abstract class AbstractH2Repository {
      */
     protected AbstractH2Repository(H2StorageTransaction transaction) {
         this.transaction = Objects.requireNonNull(transaction, "transaction");
+        this.logger = LoggerFactory.getLogger(getClass());
     }
 
     /**
@@ -44,6 +48,7 @@ abstract class AbstractH2Repository {
      * @throws StorageException if the statement cannot be created
      */
     protected PreparedStatement prepare(String sql) {
+        logger.trace("Preparing H2 SQL statement: {}", sql);
         try {
             return transaction.connection().prepareStatement(sql);
         } catch (SQLException e) {
@@ -60,6 +65,7 @@ abstract class AbstractH2Repository {
      *                          exception needs to be translated
      */
     protected void executeUpdate(String sql, SQLParameterSetter setter) {
+        logger.debug("Executing H2 update statement.");
         try (PreparedStatement statement = prepare(sql)) {
             setter.set(statement);
             statement.executeUpdate();
@@ -77,6 +83,7 @@ abstract class AbstractH2Repository {
      * @throws StorageException if the query cannot be executed
      */
     protected boolean exists(String sql, SQLParameterSetter setter) {
+        logger.debug("Executing H2 existence query.");
         try (PreparedStatement statement = prepare(sql)) {
             setter.set(statement);
 
@@ -100,6 +107,7 @@ abstract class AbstractH2Repository {
      * @return the translated storage exception
      */
     protected StorageException translate(SQLException exception) {
+        logger.error(exception, "H2 repository operation failed.");
         if (exception.getErrorCode() == 23505) {
             return new DuplicateEntryException(exception.getMessage());
         }

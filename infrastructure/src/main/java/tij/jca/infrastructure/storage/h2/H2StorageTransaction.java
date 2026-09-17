@@ -1,6 +1,8 @@
 package tij.jca.infrastructure.storage.h2;
 
 import tij.jca.core.storage.IStorageTransaction;
+import tij.jca.logging.ILogger;
+import tij.jca.logging.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -21,6 +23,8 @@ import java.util.Objects;
  * @author TiJ
  */
 public final class H2StorageTransaction implements IStorageTransaction {
+    private static final ILogger LOGGER = LoggerFactory.getLogger(H2StorageTransaction.class);
+
     private final Connection connection;
 
     private boolean completed;
@@ -64,10 +68,13 @@ public final class H2StorageTransaction implements IStorageTransaction {
         ensureOpen();
         ensureNotCompleted();
 
+        LOGGER.debug("Committing H2 storage transaction.");
+
         try {
             connection.commit();
             completed = true;
         } catch (SQLException e) {
+            LOGGER.error(e, "Failed to commit H2 storage transaction.");
             throw new IllegalStateException(
                     "Failed to commit H2 transaction.",
                     e
@@ -88,10 +95,13 @@ public final class H2StorageTransaction implements IStorageTransaction {
         ensureOpen();
         ensureNotCompleted();
 
+        LOGGER.debug("Rolling back H2 storage transaction.");
+
         try {
             connection.rollback();
             completed = true;
         } catch (SQLException e) {
+            LOGGER.error(e, "Failed to roll back H2 storage transaction.");
             throw new IllegalStateException(
                     "Failed to roll back H2 transaction.",
                     e
@@ -112,11 +122,20 @@ public final class H2StorageTransaction implements IStorageTransaction {
             return;
         }
 
+        LOGGER.debug(
+                "Closing H2 storage transaction. Completed: {}",
+                completed
+        );
+
         try {
             if (!completed) {
                 connection.rollback();
             }
         } catch (SQLException e) {
+            LOGGER.error(
+                    e,
+                    "Failed to roll back H2 storage transaction during close."
+            );
             throw new IllegalStateException(
                     "Failed to roll back H2 transaction during close.",
                     e
@@ -125,6 +144,7 @@ public final class H2StorageTransaction implements IStorageTransaction {
             try {
                 connection.close();
             } catch (SQLException e) {
+                LOGGER.error(e, "Failed to close H2 storage transaction.");
                 throw new IllegalStateException(
                         "Failed to close H2 transaction.",
                         e

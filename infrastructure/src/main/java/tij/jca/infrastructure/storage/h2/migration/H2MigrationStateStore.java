@@ -9,6 +9,8 @@ import tij.jca.infrastructure.storage.h2.H2DatabaseConstants;
 import tij.jca.infrastructure.storage.h2.H2StorageEngine;
 import tij.jca.infrastructure.storage.h2.H2StorageTransaction;
 import tij.jca.infrastructure.storage.h2.helper.SQLBuilder;
+import tij.jca.logging.ILogger;
+import tij.jca.logging.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -26,6 +28,9 @@ import java.util.Objects;
  * @author TiJ
  */
 public final class H2MigrationStateStore implements IMigrationStateStore {
+    private static final ILogger LOGGER =
+            LoggerFactory.getLogger(H2MigrationStateStore.class);
+
     private static final String STATEMENT__CREATE_SCHEMA_MIGRATION_TABLE =
             SQLBuilder.createTable(H2DatabaseConstants.TABLE__JCA_SCHEMA_MIGRATIONS)
                     .ifNotExists()
@@ -71,7 +76,12 @@ public final class H2MigrationStateStore implements IMigrationStateStore {
     public List<Integer> getAppliedVersions(IStorageEngine storageEngine) {
         Objects.requireNonNull(storageEngine, "storageEngine");
 
+        LOGGER.debug("Reading applied H2 migration versions.");
+
         if (!(storageEngine instanceof H2StorageEngine h2Engine)) {
+            LOGGER.error(
+                    "Cannot read H2 migration state from a non-H2 storage engine."
+            );
             throw new MigrationException(
                     "H2 migration state store requires an H2 storage engine."
             );
@@ -102,6 +112,11 @@ public final class H2MigrationStateStore implements IMigrationStateStore {
 
             transaction.rollback();
 
+            LOGGER.debug(
+                    "Read {} applied H2 migration versions.",
+                    versions.size()
+            );
+
             return List.copyOf(versions);
         }
     }
@@ -121,6 +136,12 @@ public final class H2MigrationStateStore implements IMigrationStateStore {
 
         Objects.requireNonNull(migration, "migration");
 
+        LOGGER.info(
+                "Recording applied H2 migration {} ({}).",
+                migration.version(),
+                migration.description()
+        );
+
         H2StorageTransaction h2Transaction = requireH2Transaction(transaction);
 
         Connection connection = h2Transaction.connection();
@@ -136,6 +157,11 @@ public final class H2MigrationStateStore implements IMigrationStateStore {
 
             statement.executeUpdate();
         } catch (SQLException e) {
+            LOGGER.error(
+                    e,
+                    "Failed to record applied H2 migration {}.",
+                    migration.version()
+            );
             throw new MigrationException(
                     "Failed to record applied H2 migration.",
                     e
@@ -150,6 +176,8 @@ public final class H2MigrationStateStore implements IMigrationStateStore {
      * @throws MigrationException if the table cannot be initialised
      */
     private void ensureTableExists(H2StorageEngine storageEngine) {
+        LOGGER.debug("Ensuring H2 migration state table exists.");
+
         try (IStorageTransaction transaction = storageEngine.beginTransaction()) {
             H2StorageTransaction h2Transaction = requireH2Transaction(transaction);
 
@@ -159,7 +187,12 @@ public final class H2MigrationStateStore implements IMigrationStateStore {
                 statement.execute(STATEMENT__CREATE_SCHEMA_MIGRATION_TABLE);
                 statement.execute(STATEMENT__ENSURE_INTERNAL_VERSION_ROW);
                 transaction.commit();
+                LOGGER.debug("H2 migration state table is ready.");
             } catch (SQLException e) {
+                LOGGER.error(
+                        e,
+                        "Failed to initialise H2 migration state table."
+                );
                 throw new MigrationException(
                         "Failed to initialise H2 migration state table.",
                         e
@@ -177,6 +210,9 @@ public final class H2MigrationStateStore implements IMigrationStateStore {
      */
     private static H2StorageTransaction requireH2Transaction(IStorageTransaction transaction) {
         if (!(transaction instanceof H2StorageTransaction h2Transaction)) {
+            LOGGER.error(
+                    "H2 migration state store received a non-H2 transaction."
+            );
             throw new MigrationException(
                     "H2 migration state store requires an H2 storage transaction."
             );

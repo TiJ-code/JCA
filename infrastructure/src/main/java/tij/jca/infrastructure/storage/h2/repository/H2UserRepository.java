@@ -37,6 +37,7 @@ public final class H2UserRepository extends AbstractH2Repository implements IUse
 
     @Override
     public List<User> findByUsername(String username) {
+        logger.debug("Finding users by username '{}'.", username);
         String sql = SQLBuilder
                 .select(
                         H2DatabaseConstants.COLUMN__USERS__ID,
@@ -66,6 +67,7 @@ public final class H2UserRepository extends AbstractH2Repository implements IUse
 
     @Override
     public Set<DeviceID> findDeviceIds(UserID userId) {
+        logger.debug("Finding devices for user '{}'.", userId);
         String sql = SQLBuilder
                 .select(H2DatabaseConstants.COLUMN__USER_DEVICE_MAPPING__DEVICE_ID)
                 .from(H2DatabaseConstants.TABLE__USER_DEVICE_MAPPING)
@@ -93,6 +95,11 @@ public final class H2UserRepository extends AbstractH2Repository implements IUse
 
     @Override
     public void attachDevice(UserID userId, DeviceID deviceId) {
+        logger.debug(
+                "Attaching device '{}' to user '{}'.",
+                deviceId,
+                userId
+        );
         String sql = SQLBuilder
                 .insertInto(H2DatabaseConstants.TABLE__USER_DEVICE_MAPPING)
                 .columns(H2DatabaseConstants.COLUMN__USER_DEVICE_MAPPING__USER_ID, H2DatabaseConstants.COLUMN__USER_DEVICE_MAPPING__DEVICE_ID)
@@ -106,6 +113,11 @@ public final class H2UserRepository extends AbstractH2Repository implements IUse
 
     @Override
     public void detachDevice(UserID userId, DeviceID deviceId) {
+        logger.debug(
+                "Detaching device '{}' from user '{}'.",
+                deviceId,
+                userId
+        );
         String sql = SQLBuilder
                 .deleteFrom(H2DatabaseConstants.TABLE__USER_DEVICE_MAPPING)
                 .where(H2DatabaseConstants.COLUMN__USER_DEVICE_MAPPING__USER_ID + " = ?")
@@ -120,6 +132,7 @@ public final class H2UserRepository extends AbstractH2Repository implements IUse
 
     @Override
     public User save(User user) {
+        logger.debug("Saving user '{}'.", user.id());
         String sql = SQLBuilder
                 .mergeInto(H2DatabaseConstants.TABLE__USERS)
                 .columns(
@@ -141,6 +154,7 @@ public final class H2UserRepository extends AbstractH2Repository implements IUse
 
     @Override
     public Optional<User> findById(UserID userID) {
+        logger.debug("Finding user '{}'.", userID);
         String sql = SQLBuilder
                 .select(
                         H2DatabaseConstants.COLUMN__USERS__ID,
@@ -168,6 +182,7 @@ public final class H2UserRepository extends AbstractH2Repository implements IUse
 
     @Override
     public boolean existsById(UserID userID) {
+        logger.debug("Checking whether user '{}' exists.", userID);
         String sql = SQLBuilder
                 .select("1")
                 .from(H2DatabaseConstants.TABLE__USERS)
@@ -179,6 +194,7 @@ public final class H2UserRepository extends AbstractH2Repository implements IUse
 
     @Override
     public void deleteById(UserID userID) {
+        logger.debug("Deleting user '{}'.", userID);
         String sql = SQLBuilder
                 .deleteFrom(H2DatabaseConstants.TABLE__USERS)
                 .where(H2DatabaseConstants.COLUMN__USERS__ID + " = ?")

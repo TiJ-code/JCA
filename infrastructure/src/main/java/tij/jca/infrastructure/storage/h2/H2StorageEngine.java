@@ -6,6 +6,8 @@ import tij.jca.core.storage.IStorageTransaction;
 import tij.jca.core.storage.migration.MigrationRunner;
 import tij.jca.infrastructure.storage.h2.migration.H2MigrationProvider;
 import tij.jca.infrastructure.storage.h2.migration.H2MigrationStateStore;
+import tij.jca.logging.ILogger;
+import tij.jca.logging.LoggerFactory;
 
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -22,6 +24,8 @@ import java.util.Objects;
  * @author TiJ
  */
 public class H2StorageEngine implements IStorageEngine {
+    private static final ILogger LOGGER = LoggerFactory.getLogger(H2StorageEngine.class);
+
     private final H2ConnectionProvider connectionProvider;
     private final MigrationRunner migrationRunner;
 
@@ -74,13 +78,17 @@ public class H2StorageEngine implements IStorageEngine {
     @Override
     public void open() {
         if (open) {
+            LOGGER.debug("H2 storage engine is already open.");
             return;
         }
+
+        LOGGER.info("Opening H2 storage engine.");
 
         try (Connection connection = connectionProvider.getConnection()) {
             connection.isValid(2);
             open = true;
         } catch (SQLException e) {
+            LOGGER.error(e, "Failed to open H2 storage engine.");
             throw new IllegalStateException(
                     "Failed to open H2 storage engine.",
                     e
@@ -89,7 +97,9 @@ public class H2StorageEngine implements IStorageEngine {
 
         try {
             migrationRunner.migrate(this);
+            LOGGER.info("H2 storage engine opened successfully.");
         } catch (RuntimeException e) {
+            LOGGER.error(e, "H2 storage engine migration failed.");
             close();
             throw e;
         }
@@ -116,6 +126,8 @@ public class H2StorageEngine implements IStorageEngine {
     public H2StorageTransaction beginTransaction() {
         ensureOpen();
 
+        LOGGER.debug("Beginning H2 storage transaction.");
+
         Connection connection = connectionProvider.getConnection();
 
         try {
@@ -123,6 +135,7 @@ public class H2StorageEngine implements IStorageEngine {
         } catch (SQLException e) {
             closeQuietly(connection);
 
+            LOGGER.error(e, "Failed to begin H2 storage transaction.");
             throw new IllegalStateException(
                     "Failed to begin H2 transaction.",
                     e
@@ -139,6 +152,10 @@ public class H2StorageEngine implements IStorageEngine {
      */
     @Override
     public void close() {
+        if (open) {
+            LOGGER.info("Closing H2 storage engine.");
+        }
+
         open = false;
     }
 

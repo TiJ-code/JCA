@@ -42,6 +42,7 @@ public final class H2ConversationRepository extends AbstractH2Repository impleme
 
     @Override
     public List<ConversationID> findByServerId(ServerID serverId) {
+        logger.debug("Finding conversations for server '{}'.", serverId);
         String sql = SQLBuilder
                 .select(H2DatabaseConstants.COLUMN__SERVER_CHATROOM_MAPPING__CHATROOM_ID)
                 .from(H2DatabaseConstants.TABLE__SERVER_CHATROOM_MAPPING)
@@ -69,6 +70,7 @@ public final class H2ConversationRepository extends AbstractH2Repository impleme
 
     @Override
     public Set<UserID> findUserIds(ConversationID chatRoomId) {
+        logger.debug("Finding users for conversation '{}'.", chatRoomId);
         String sql = SQLBuilder
                 .select(H2DatabaseConstants.COLUMN__CHATROOM_USER_MAPPING__USER_ID)
                 .from(H2DatabaseConstants.TABLE__CHATROOM_USER_MAPPING)
@@ -96,6 +98,11 @@ public final class H2ConversationRepository extends AbstractH2Repository impleme
 
     @Override
     public void addUser(ConversationID chatRoomId, UserID userId) {
+        logger.debug(
+                "Adding user '{}' to conversation '{}'.",
+                userId,
+                chatRoomId
+        );
         String sql = SQLBuilder
                 .insertInto(H2DatabaseConstants.TABLE__CHATROOM_USER_MAPPING)
                 .columns(
@@ -112,6 +119,11 @@ public final class H2ConversationRepository extends AbstractH2Repository impleme
 
     @Override
     public void removeUser(ConversationID chatRoomId, UserID userId) {
+        logger.debug(
+                "Removing user '{}' from conversation '{}'.",
+                userId,
+                chatRoomId
+        );
         String sql = SQLBuilder
                 .deleteFrom(H2DatabaseConstants.TABLE__CHATROOM_USER_MAPPING)
                 .where(H2DatabaseConstants.COLUMN__CHATROOM_USER_MAPPING__CHATROOM_ID + " = ?")
@@ -126,6 +138,7 @@ public final class H2ConversationRepository extends AbstractH2Repository impleme
 
     @Override
     public ChatRoom save(ChatRoom chatRoom) {
+        logger.debug("Saving conversation '{}'.", chatRoom.id());
         String sql = SQLBuilder
                 .mergeInto(H2DatabaseConstants.COLUMN__CHATROOMS__ID)
                 .columns(
@@ -145,6 +158,7 @@ public final class H2ConversationRepository extends AbstractH2Repository impleme
 
     @Override
     public Optional<ChatRoom> findById(ConversationID conversationID) {
+        logger.debug("Finding conversation '{}'.", conversationID);
         String sql = SQLBuilder
                 .select(
                         H2DatabaseConstants.COLUMN__CHATROOMS__ID,
@@ -171,6 +185,7 @@ public final class H2ConversationRepository extends AbstractH2Repository impleme
 
     @Override
     public boolean existsById(ConversationID conversationID) {
+        logger.debug("Checking whether conversation '{}' exists.", conversationID);
         String sql = SQLBuilder
                 .select("1")
                 .from(H2DatabaseConstants.TABLE__CHAT_ROOMS)
@@ -184,6 +199,7 @@ public final class H2ConversationRepository extends AbstractH2Repository impleme
 
     @Override
     public void deleteById(ConversationID conversationID) {
+        logger.debug("Deleting conversation '{}'.", conversationID);
         String sql = SQLBuilder
                 .deleteFrom(H2DatabaseConstants.TABLE__CHAT_ROOMS)
                 .where(H2DatabaseConstants.COLUMN__CHATROOMS__ID + " = ?")
