@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<patch version="1">
+    <topic name="Technical">
+        <component ref="application">
+            <category name="add">
+                <entry>application service layer for user registration, lookup, and device association workflows</entry>
+                <entry>application service layer for server creation, membership, and chatroom attachment workflows</entry>
+                <entry>application service layer for chat room creation, retrieval, and user membership management</entry>
+                <entry>application service layer for message sending, retrieval, and deletion workflows</entry>
+            </category>
+        </component>
+    </topic>
+</patch>

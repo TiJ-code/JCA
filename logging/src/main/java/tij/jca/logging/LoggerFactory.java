@@ -15,8 +15,9 @@ import java.util.function.Supplier;
  * {@link AtomicReference atomic references}, allowing them to be safely
  * replaced while the application is running.</p>
  *
- * <p>By default, the factory uses {@link NoLogger}, meaning logging is
- * effectively disabled until an actual logger implementation is configured.</p>
+ * <p>By default, the factory creates {@link ConsoleLogger} instances. Callers
+ * may replace the implementation, including with {@link NoLogger}, through
+ * {@link #setLoggerFactory(Supplier)}.</p>
  *
  * @since 0.1.0
  * @author TiJ
@@ -24,7 +25,7 @@ import java.util.function.Supplier;
 public final class LoggerFactory {
 
     private static final AtomicReference<Supplier<ILogger>> LOGGER_FACTORY =
-            new AtomicReference<>(NoLogger::new);
+            new AtomicReference<>(ConsoleLogger::new);
 
     private static final AtomicReference<ILogConfig> CONFIG =
             new AtomicReference<>(
