@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<patch version="1">
+    <topic name="Technical">
+        <component ref="application">
+            <category name="add">
+                <entry>application exception hierarchy for validation, conflicts, missing resources, and service operation failures</entry>
+                <entry>shared service validation for required values and non-blank text</entry>
+                <entry>transaction executor that translates storage exceptions into application-level exceptions</entry>
+                <entry>service tests for invalid input validation and translated missing-resource errors</entry>
+            </category>
+            <category name="ref">
+                <entry>user, server, chat room, and message services now validate required inputs before executing transactions</entry>
+                <entry>user, server, chat room, and message services now use the shared transaction executor</entry>
+            </category>
+        </component>
+    </topic>
+</patch>
