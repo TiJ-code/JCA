@@ -45,7 +45,7 @@ public final class ConversationService {
         LOGGER.info("Creating conversation '{}'.", name);
         return transactionManager.execute(scope -> {
             ChatRoom conversation = new ChatRoom(
-                    new ConversationID(UUIDGen.random()),
+                    new ConversationID(),
                     name
             );
 

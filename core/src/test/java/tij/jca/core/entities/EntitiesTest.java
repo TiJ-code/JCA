@@ -53,18 +53,18 @@ class EntitiesTest {
     @Test
     void messageStoresItsContent() {
         final Instant date = Instant.now();
-        final String messageId = UUIDGen.random();
+        final MessageID messageId = new MessageID();
         final String authorId = UUIDGen.random();
         final String text = "Hello, world!";
 
         Message message = new Message(
-                new MessageID(messageId),
+                messageId,
                 new UserID(authorId),
                 date,
                 text
         );
 
-        Assertions.assertEquals(messageId, message.id().id());
+        Assertions.assertEquals(messageId, message.id());
         Assertions.assertEquals(authorId, message.authorId().id());
         Assertions.assertEquals(date, message.date());
         Assertions.assertEquals(text, message.text());
@@ -73,14 +73,14 @@ class EntitiesTest {
     @Test
     void messageRejectsBlankText() {
         Assertions.assertThrows(IllegalArgumentException.class, () -> new Message(
-                new MessageID(UUIDGen.random()),
+                new MessageID(),
                 new UserID(UUIDGen.random()),
                 Instant.now(),
                 " "
         ));
 
         Assertions.assertThrows(IllegalArgumentException.class, () -> new Message(
-                new MessageID(UUIDGen.random()),
+                new MessageID(),
                 new UserID(UUIDGen.random()),
                 Instant.now(),
                 ""
@@ -97,7 +97,7 @@ class EntitiesTest {
         );
 
         Message message = new Message(
-                new MessageID(UUIDGen.random()),
+                new MessageID(),
                 userId,
                 Instant.now(),
                 "Hello, world!"
@@ -125,7 +125,7 @@ class EntitiesTest {
         );
 
         Message message = new Message(
-                new MessageID(UUIDGen.random()),
+                new MessageID(),
                 new UserID(UUIDGen.random()),
                 Instant.now(),
                 "Repeated content"

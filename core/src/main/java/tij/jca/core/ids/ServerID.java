@@ -8,4 +8,7 @@ package tij.jca.core.ids;
  * @author Jakob
  */
 public record ServerID(String id) {
+    public ServerID() {
+        this(UUIDGen.random());
+    }
 }

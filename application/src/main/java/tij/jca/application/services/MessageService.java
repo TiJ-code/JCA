@@ -52,7 +52,7 @@ public final class MessageService {
         );
         return transactionManager.execute(scope -> {
             Message message = new Message(
-                    new MessageID(UUIDGen.random()),
+                    new MessageID(),
                     authorId,
                     Instant.now(),
                     text
