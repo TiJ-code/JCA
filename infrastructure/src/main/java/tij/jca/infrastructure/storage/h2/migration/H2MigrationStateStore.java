@@ -138,7 +138,7 @@ public final class H2MigrationStateStore implements IMigrationStateStore {
 
         LOGGER.info(
                 "Recording applied H2 migration {} ({}).",
-                migration.version(),
+                "%03d".formatted(migration.version()),
                 migration.description()
         );
 

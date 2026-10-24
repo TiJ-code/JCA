@@ -228,13 +228,30 @@ public final class H2ServerRepository extends AbstractH2Repository implements IS
     @Override
     public boolean existsById(ServerID serverID) {
         logger.debug("Checking whether server '{}' exists.", serverID);
-        return false;
+        String sql = SQLBuilder
+                .select("1")
+                .from(H2DatabaseConstants.TABLE__SERVERS)
+                .where(H2DatabaseConstants.COLUMN__SERVERS__ID + " = ?")
+                .build();
+
+        return exists(
+                sql,
+                statement -> statement.setString(1, serverID.id())
+        );
     }
 
     @Override
     public void deleteById(ServerID serverID) {
         logger.debug("Deleting server '{}'.", serverID);
+        String sql = SQLBuilder
+                .deleteFrom(H2DatabaseConstants.TABLE__SERVERS)
+                .where(H2DatabaseConstants.COLUMN__SERVERS__ID + " = ?")
+                .build();
 
+        executeUpdate(
+                sql,
+                statement -> statement.setString(1, serverID.id())
+        );
     }
 
     /**
