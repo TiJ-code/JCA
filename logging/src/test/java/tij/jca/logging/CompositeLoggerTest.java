@@ -124,7 +124,7 @@ class CompositeLoggerTest {
 
         private final List<String> entries = new ArrayList<>();
         private final List<Throwable> throwables = new ArrayList<>();
-        private Map<String, ?> context = Map.of();
+        private Map<String, Object> context = Map.of();
         private String prefix;
         private Path path;
         private boolean enabled = true;
@@ -182,17 +182,19 @@ class CompositeLoggerTest {
 
         @Override
         public ILogger with(String key, Object value) {
-            context = new java.util.LinkedHashMap<>(context);
-            ((java.util.Map<String, Object>) context).put(key, value);
+            Map<String, Object> mergedContext =
+                    new java.util.LinkedHashMap<>(context);
+            mergedContext.put(key, value);
+            context = Map.copyOf(mergedContext);
             return this;
         }
 
         @Override
         public ILogger with(Map<String, ?> additionalContext) {
-            context = new java.util.LinkedHashMap<>(context);
-            ((java.util.Map<String, Object>) context).putAll(
-                    additionalContext
-            );
+            Map<String, Object> mergedContext =
+                    new java.util.LinkedHashMap<>(context);
+            mergedContext.putAll(additionalContext);
+            context = Map.copyOf(mergedContext);
             return this;
         }
 
