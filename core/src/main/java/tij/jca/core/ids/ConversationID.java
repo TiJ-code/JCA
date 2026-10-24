@@ -9,6 +9,9 @@ package tij.jca.core.ids;
  * @author Jakob
  */
 public record ConversationID(String id) {
+    /**
+     * Creates a conversation identifier with a randomly generated version 4 UUID.
+     */
     public ConversationID() {
         this(UUIDGen.random());
     }
