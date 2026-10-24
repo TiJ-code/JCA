@@ -1,5 +1,6 @@
 package tij.jca.application.services;
 
+import tij.jca.application.exceptions.ResourceNotFoundException;
 import tij.jca.core.entities.Device;
 import tij.jca.core.entities.User;
 import tij.jca.core.ids.DeviceID;
@@ -44,21 +45,29 @@ public final class UserService {
      * @throws IllegalArgumentException if the username is already taken
      */
     public User registerUser(String username, String globalDisplayName) {
+        String validatedUsername = ServiceValidation.requireNonBlank(
+                username, "username"
+        );
+        String validatedDisplayName = ServiceValidation.requireNonBlank(
+                globalDisplayName, "globalDisplayName"
+        );
+
         LOGGER.info("Registering user '{}'.", username);
-        return transactionManager.execute(scope -> {
+
+        return ServiceTransactionExecutor.execute(transactionManager, scope -> {
             List<User> existing =
-                    scope.users().findByUsername(username);
+                    scope.users().findByUsername(validatedUsername);
 
             if (!existing.isEmpty()) {
                 throw new IllegalArgumentException(
-                        "Username already exists: " + username
+                        "Username already exists: " + validatedUsername
                 );
             }
 
             User user = new User(
                     new UserID(UUIDGen.random()),
-                    username,
-                    globalDisplayName
+                    validatedUsername,
+                    validatedDisplayName
             );
 
             return scope.users().save(user);
@@ -72,9 +81,15 @@ public final class UserService {
      * @return the matching user, if present
      */
     public Optional<User> findUser(UserID userId) {
+        UserID validatedUserId = ServiceValidation.requireNonNull(
+                userId,
+                "userId"
+        );
+
         LOGGER.debug("Finding user '{}'.", userId);
-        return transactionManager.execute(scope ->
-                scope.users().findById(userId)
+
+        return ServiceTransactionExecutor.execute(transactionManager, scope ->
+                scope.users().findById(validatedUserId)
         );
     }
 
@@ -84,27 +99,35 @@ public final class UserService {
      * @param userId the user identifier
      * @param device the device to associate with the user
      * @return the updated user
-     * @throws EntityNotFoundException if the user does not exist
+     * @throws ResourceNotFoundException if the user does not exist
      */
     public User attachDevice(UserID userId, Device device) {
+        UserID validatedUserId = ServiceValidation.requireNonNull(
+                userId, "userId"
+        );
+        Device validatedDevice = ServiceValidation.requireNonNull(
+                device, "device"
+        );
+
         LOGGER.info(
                 "Attaching device '{}' to user '{}'.",
-                device.id(),
-                userId
+                validatedDevice.id(),
+                validatedUserId
         );
-        return transactionManager.execute(scope -> {
+
+        return ServiceTransactionExecutor.execute(transactionManager, scope -> {
             User user = scope.users()
-                    .findById(userId)
+                    .findById(validatedUserId)
                     .orElseThrow(() ->
                             new EntityNotFoundException(
-                                    "User with ID " + userId + " not found."
+                                    "User with ID " + validatedUserId + " not found."
                             )
                     );
 
-            scope.devices().save(device);
+            scope.devices().save(validatedDevice);
             scope.users().attachDevice(
-                    userId,
-                    device.id()
+                    validatedUserId,
+                    validatedDevice.id()
             );
 
             user.addDevice(device);
@@ -118,22 +141,30 @@ public final class UserService {
      *
      * @param userId the user identifier
      * @param deviceId the device identifier to remove
-     * @throws EntityNotFoundException if the user does not exist
+     * @throws ResourceNotFoundException if the user does not exist
      */
     public void detachDevice(UserID userId, DeviceID deviceId) {
+        UserID validatedUserId = ServiceValidation.requireNonNull(
+                userId, "userId"
+        );
+        DeviceID validatedDeviceId = ServiceValidation.requireNonNull(
+                deviceId, "deviceId"
+        );
+
         LOGGER.info(
                 "Detaching device '{}' from user '{}'.",
-                deviceId,
-                userId
+                validatedDeviceId,
+                validatedUserId
         );
-        transactionManager.execute(scope -> {
-            if (scope.users().findById(userId).isEmpty()) {
+
+        ServiceTransactionExecutor.execute(transactionManager, scope -> {
+            if (scope.users().findById(validatedUserId).isEmpty()) {
                 throw new EntityNotFoundException(
-                        "User with ID " + userId + " not found."
+                        "User with ID " + validatedUserId + " not found."
                 );
             }
 
-            scope.users().detachDevice(userId, deviceId);
+            scope.users().detachDevice(validatedUserId, validatedDeviceId);
             return null;
         });
     }

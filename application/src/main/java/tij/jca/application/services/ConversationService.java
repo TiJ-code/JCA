@@ -1,5 +1,6 @@
 package tij.jca.application.services;
 
+import tij.jca.application.exceptions.ResourceNotFoundException;
 import tij.jca.core.entities.ChatRoom;
 import tij.jca.core.ids.ConversationID;
 import tij.jca.core.ids.ServerID;
@@ -42,11 +43,17 @@ public final class ConversationService {
      * @return the created conversation
      */
     public ChatRoom createConversation(String name) {
-        LOGGER.info("Creating conversation '{}'.", name);
-        return transactionManager.execute(scope -> {
+        String validatedName = ServiceValidation.requireNonBlank(
+                name,
+                "name"
+        );
+
+        LOGGER.info("Creating conversation '{}'.", validatedName);
+
+        return ServiceTransactionExecutor.execute(transactionManager, scope -> {
             ChatRoom conversation = new ChatRoom(
                     new ConversationID(UUIDGen.random()),
-                    name
+                    validatedName
             );
 
             return scope.conversations().save(conversation);
@@ -60,9 +67,16 @@ public final class ConversationService {
      * @return the matching conversation, if present
      */
     public Optional<ChatRoom> findChatRoom(ConversationID conversationId) {
-        LOGGER.debug("Finding conversation '{}'.", conversationId);
-        return transactionManager.execute(scope ->
-                scope.conversations().findById(conversationId)
+        ConversationID validatedConversationId =
+                ServiceValidation.requireNonNull(
+                        conversationId,
+                        "conversationId"
+                );
+
+        LOGGER.debug("Finding conversation '{}'.", validatedConversationId);
+
+        return ServiceTransactionExecutor.execute(transactionManager, scope ->
+                scope.conversations().findById(validatedConversationId)
         );
     }
 
@@ -73,9 +87,15 @@ public final class ConversationService {
      * @return the server's chat room identifiers
      */
     public List<ConversationID> findByServerId(ServerID serverId) {
-        LOGGER.debug("Finding conversations for server '{}'.", serverId);
-        return transactionManager.execute(scope ->
-                scope.conversations().findByServerId(serverId)
+        ServerID validatedServerId = ServiceValidation.requireNonNull(
+                serverId,
+                "serverId"
+        );
+
+        LOGGER.debug("Finding conversations for server '{}'.", validatedServerId);
+
+        return ServiceTransactionExecutor.execute(transactionManager, scope ->
+                scope.conversations().findByServerId(validatedServerId)
         );
     }
 
@@ -84,25 +104,38 @@ public final class ConversationService {
      *
      * @param conversationId the conversation identifier
      * @param userId the user identifier
-     * @throws EntityNotFoundException if the conversation does not exist
+     * @throws ResourceNotFoundException if the conversation does not exist
      */
     public void addUser(ConversationID conversationId, UserID userId) {
+        ConversationID validatedConversationId =
+                ServiceValidation.requireNonNull(
+                        conversationId,
+                        "conversationId"
+                );
+        UserID validatedUserId = ServiceValidation.requireNonNull(
+                userId,
+                "userId"
+        );
+
         LOGGER.info(
                 "Adding user '{}' to conversation '{}'.",
-                userId,
-                conversationId
+                validatedUserId,
+                validatedConversationId
         );
-        transactionManager.execute(scope -> {
+
+        ServiceTransactionExecutor.execute(transactionManager, scope -> {
             if (!scope.conversations()
-                    .existsById(conversationId)) {
+                    .existsById(validatedConversationId)) {
                 throw new EntityNotFoundException(
-                        "Conversation with ID " + conversationId + " not found."
+                        "Conversation with ID "
+                                + validatedConversationId
+                                + " not found."
                 );
             }
 
             scope.conversations().addUser(
-                    conversationId,
-                    userId
+                    validatedConversationId,
+                    validatedUserId
             );
 
             return null;

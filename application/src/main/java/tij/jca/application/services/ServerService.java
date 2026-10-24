@@ -1,5 +1,6 @@
 package tij.jca.application.services;
 
+import tij.jca.application.exceptions.ResourceNotFoundException;
 import tij.jca.core.entities.Server;
 import tij.jca.core.ids.ConversationID;
 import tij.jca.core.ids.ServerID;
@@ -42,11 +43,17 @@ public final class ServerService {
      * @return the created server
      */
     public Server createServer(String name) {
-        LOGGER.info("Creating server '{}'.", name);
-        return transactionManager.execute(scope -> {
+        String validatedName = ServiceValidation.requireNonBlank(
+                name,
+                "name"
+        );
+
+        LOGGER.info("Creating server '{}'.", validatedName);
+
+        return ServiceTransactionExecutor.execute(transactionManager, scope -> {
             Server server = new Server(
                     new ServerID(UUIDGen.random()),
-                    name
+                    validatedName
             );
 
             return scope.servers().save(server);
@@ -60,9 +67,15 @@ public final class ServerService {
      * @return the matching server, if present
      */
     public Optional<Server> findServer(ServerID serverId) {
-        LOGGER.debug("Finding server '{}'.", serverId);
-        return transactionManager.execute(scope ->
-            scope.servers().findById(serverId)
+        ServerID validatedServerId = ServiceValidation.requireNonNull(
+                serverId,
+                "serverId"
+        );
+
+        LOGGER.debug("Finding server '{}'.", validatedServerId);
+
+        return ServiceTransactionExecutor.execute(transactionManager, scope ->
+            scope.servers().findById(validatedServerId)
         );
     }
 
@@ -73,9 +86,15 @@ public final class ServerService {
      * @return all servers matching the provided name
      */
     public List<Server> findServersByName(String name) {
-        LOGGER.debug("Finding servers named '{}'.", name);
-        return transactionManager.execute(scope ->
-                scope.servers().findByName(name)
+        String validatedName = ServiceValidation.requireNonBlank(
+                name,
+                "name"
+        );
+
+        LOGGER.debug("Finding servers named '{}'.", validatedName);
+
+        return ServiceTransactionExecutor.execute(transactionManager, scope ->
+                scope.servers().findByName(validatedName)
         );
     }
 
@@ -84,22 +103,32 @@ public final class ServerService {
      *
      * @param serverId the server identifier
      * @param userId the user identifier
-     * @throws EntityNotFoundException if the server does not exist
+     * @throws ResourceNotFoundException if the server does not exist
      */
     public void addUser(ServerID serverId, UserID userId) {
+        ServerID validatedServerId = ServiceValidation.requireNonNull(
+                serverId,
+                "serverId"
+        );
+        UserID validatedUserId = ServiceValidation.requireNonNull(
+                userId,
+                "userId"
+        );
+
         LOGGER.info(
                 "Adding user '{}' to server '{}'.",
-                userId,
-                serverId
+                validatedUserId,
+                validatedServerId
         );
-        transactionManager.execute(scope -> {
-            if (!scope.servers().existsById(serverId)) {
+
+        ServiceTransactionExecutor.execute(transactionManager, scope -> {
+            if (!scope.servers().existsById(validatedServerId)) {
                 throw new EntityNotFoundException(
-                        "Server with ID " + serverId + " not found."
+                        "Server with ID " + validatedServerId + " not found."
                 );
             }
 
-            scope.servers().addUser(serverId, userId);
+            scope.servers().addUser(validatedServerId, validatedUserId);
             return null;
         });
     }
@@ -109,24 +138,35 @@ public final class ServerService {
      *
      * @param serverId the server identifier
      * @param conversationId the conversation identifier
-     * @throws EntityNotFoundException if the server does not exist
+     * @throws ResourceNotFoundException if the server does not exist
      */
     public void attachConversation(ServerID serverId, ConversationID conversationId) {
+        ServerID validatedServerId = ServiceValidation.requireNonNull(
+                serverId,
+                "serverId"
+        );
+        ConversationID validatedConversationId =
+                ServiceValidation.requireNonNull(
+                        conversationId,
+                        "conversationId"
+                );
+
         LOGGER.info(
                 "Attaching conversation '{}' to server '{}'.",
-                conversationId,
-                serverId
+                validatedConversationId,
+                validatedServerId
         );
-        transactionManager.execute(scope -> {
-            if (!scope.servers().existsById(serverId)) {
+
+        ServiceTransactionExecutor.execute(transactionManager, scope -> {
+            if (!scope.servers().existsById(validatedServerId)) {
                 throw new EntityNotFoundException(
-                        "Server with ID " + serverId + " not found."
+                        "Server with ID " + validatedServerId + " not found."
                 );
             }
 
             scope.servers().attachConversation(
-                    serverId,
-                    conversationId
+                    validatedServerId,
+                    validatedConversationId
             );
 
             return null;

@@ -1,5 +1,6 @@
 package tij.jca.application.services;
 
+import tij.jca.application.exceptions.ResourceNotFoundException;
 import tij.jca.core.entities.Message;
 import tij.jca.core.ids.ConversationID;
 import tij.jca.core.ids.MessageID;
@@ -45,23 +46,38 @@ public final class MessageService {
      * @return the stored message
      */
     public Message sendMessage(ConversationID conversationId, UserID authorId, String text) {
+        ConversationID validatedConversationId =
+                ServiceValidation.requireNonNull(
+                        conversationId,
+                        "conversationId"
+                );
+        UserID validatedAuthorId = ServiceValidation.requireNonNull(
+                authorId,
+                "authorId"
+        );
+        String validatedText = ServiceValidation.requireNonBlank(
+                text,
+                "text"
+        );
+
         LOGGER.info(
                 "Sending message from user '{}' to conversation '{}'.",
-                authorId,
-                conversationId
+                validatedAuthorId,
+                validatedConversationId
         );
-        return transactionManager.execute(scope -> {
+
+        return ServiceTransactionExecutor.execute(transactionManager, scope -> {
             Message message = new Message(
                     new MessageID(UUIDGen.random()),
-                    authorId,
+                    validatedAuthorId,
                     Instant.now(),
-                    text
+                    validatedText
             );
 
             scope.messages().save(message);
             scope.messages().attachToChatRoom(
                     message.id(),
-                    conversationId
+                    validatedConversationId
             );
 
             return message;
@@ -75,9 +91,15 @@ public final class MessageService {
      * @return the matching message, if present
      */
     public Optional<Message> findMessage(MessageID messageId) {
-        LOGGER.debug("Finding message '{}'.", messageId);
-        return transactionManager.execute(scope ->
-                scope.messages().findById(messageId)
+        MessageID validatedMessageId = ServiceValidation.requireNonNull(
+                messageId,
+                "messageId"
+        );
+
+        LOGGER.debug("Finding message '{}'.", validatedMessageId);
+
+        return ServiceTransactionExecutor.execute(transactionManager, scope ->
+                scope.messages().findById(validatedMessageId)
         );
     }
 
@@ -88,9 +110,19 @@ public final class MessageService {
      * @return the chat room's messages
      */
     public List<Message> findMessages(ConversationID conversationId) {
-        LOGGER.debug("Finding messages for conversation '{}'.", conversationId);
-        return transactionManager.execute(scope ->
-                scope.messages().findByChatRoomId(conversationId)
+        ConversationID validatedConversationId =
+                ServiceValidation.requireNonNull(
+                        conversationId,
+                        "conversationId"
+                );
+
+        LOGGER.debug(
+                "Finding messages for conversation '{}'.",
+                validatedConversationId
+        );
+
+        return ServiceTransactionExecutor.execute(transactionManager, scope ->
+                scope.messages().findByChatRoomId(validatedConversationId)
         );
     }
 
@@ -99,27 +131,38 @@ public final class MessageService {
      *
      * @param messageId the message identifier
      * @param conversationId the chat room identifier
-     * @throws EntityNotFoundException if the message does not exist
+     * @throws ResourceNotFoundException if the message does not exist
      */
     public void deleteMessage(MessageID messageId, ConversationID conversationId) {
+        MessageID validatedMessageId = ServiceValidation.requireNonNull(
+                messageId,
+                "messageId"
+        );
+        ConversationID validatedConversationId =
+                ServiceValidation.requireNonNull(
+                        conversationId,
+                        "conversationId"
+                );
+
         LOGGER.info(
                 "Deleting message '{}' from conversation '{}'.",
-                messageId,
-                conversationId
+                validatedMessageId,
+                validatedConversationId
         );
-        transactionManager.execute(scope -> {
-            if (!scope.messages().existsById(messageId)) {
+
+        ServiceTransactionExecutor.execute(transactionManager, scope -> {
+            if (!scope.messages().existsById(validatedMessageId)) {
                 throw new EntityNotFoundException(
-                        "Message with ID " + messageId + " not found."
+                        "Message with ID " + validatedMessageId + " not found."
                 );
             }
 
             scope.messages().detachFromChatRoom(
-                    messageId,
-                    conversationId
+                    validatedMessageId,
+                    validatedConversationId
             );
 
-            scope.messages().deleteById(messageId);
+            scope.messages().deleteById(validatedMessageId);
             return null;
         });
     }
