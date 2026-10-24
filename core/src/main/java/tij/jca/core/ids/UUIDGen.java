@@ -25,6 +25,12 @@ public final class UUIDGen {
         return UUID.randomUUID().toString();
     }
 
+    /**
+     * Generates a version 7 UUID string using the current Unix timestamp and
+     * securely generated random bits.
+     *
+     * @return A generated version 7 UUID as a {@link String}
+     */
     public static synchronized String randomV7() {
         long timestamp = System.currentTimeMillis();
         int randA;
