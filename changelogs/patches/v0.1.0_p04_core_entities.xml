@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<patch version="1">
+    <topic name="Technical">
+        <component ref="core">
+            <category name="add">
+                <entry>domain entities for users, devices, messages, servers, and chatrooms</entry>
+                <entry>device type enumeration and user, server, and chatroom relationship records</entry>
+                <entry>validation for required entity values and message text length</entry>
+            </category>
+            <category name="ref">
+                <entry>unmodifiable collection views for entity-owned users, devices, chatrooms, and messages</entry>
+                <entry>JavaDoc documentation for core entity APIs</entry>
+            </category>
+        </component>
+    </topic>
+</patch>

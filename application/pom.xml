@@ -20,6 +20,16 @@
 
     <dependencies>
         <dependency>
+            <groupId>tij.jca</groupId>
+            <artifactId>core</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>tij.jca</groupId>
+            <artifactId>logging</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>

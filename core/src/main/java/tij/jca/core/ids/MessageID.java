@@ -8,4 +8,10 @@ package tij.jca.core.ids;
  * @author Jakob
  */
 public record MessageID(String id) {
+    /**
+     * Creates a message identifier with a generated version 7 UUID.
+     */
+    public MessageID() {
+        this(UUIDGen.randomV7());
+    }
 }

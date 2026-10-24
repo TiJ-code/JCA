@@ -8,4 +8,10 @@ package tij.jca.core.ids;
  * @author Jakob
  */
 public record SessionID(String id) {
+    /**
+     * Creates a session identifier with a randomly generated version 4 UUID.
+     */
+    public SessionID() {
+        this(UUIDGen.random());
+    }
 }
