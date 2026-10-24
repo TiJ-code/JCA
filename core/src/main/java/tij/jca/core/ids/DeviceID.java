@@ -8,4 +8,7 @@ package tij.jca.core.ids;
  * @author Jakob
  */
 public record DeviceID(String id) {
+    public DeviceID() {
+        this(UUIDGen.random());
+    }
 }

@@ -56,7 +56,7 @@ public final class UserService {
             }
 
             User user = new User(
-                    new UserID(UUIDGen.random()),
+                    new UserID(),
                     username,
                     globalDisplayName
             );

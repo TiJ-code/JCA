@@ -45,7 +45,7 @@ public final class ServerService {
         LOGGER.info("Creating server '{}'.", name);
         return transactionManager.execute(scope -> {
             Server server = new Server(
-                    new ServerID(UUIDGen.random()),
+                    new ServerID(),
                     name
             );
 

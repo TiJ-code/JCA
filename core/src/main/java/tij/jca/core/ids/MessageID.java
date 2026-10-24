@@ -8,4 +8,7 @@ package tij.jca.core.ids;
  * @author Jakob
  */
 public record MessageID(String id) {
+    public MessageID() {
+        this(UUIDGen.randomV7());
+    }
 }
