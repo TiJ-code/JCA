@@ -4,6 +4,8 @@
 
 A privacy-focused, self-hostable open-source messenger written in Java.
 
+Please read the [AI usage policy](AI.md) before using AI tools with this repository.
+
 ---
 
 ## About
