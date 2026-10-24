@@ -7,13 +7,49 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Logger that forwards each operation to multiple delegate loggers.
+ *
+ * <p>This class allows applications to write on log entry to several
+ * destinations, such as {@link ConsoleLogger}, a possible file logger,
+ * or a future SLF4J adapter. Each delegate retains responsibility for
+ * its own output formatting, filtering, and destination handling.</p>
+ *
+ * <p>Delegates are invoked in constructor order. If a delegate throws
+ * an exception, the exception is propagated immediately and remaining
+ * delegates are not invoked. Logging failures are therefore never
+ * silently ignored.</p>
+ *
+ * <p>Contextual loggers returned by {@link #with(String, Object)} and
+ * {@link #with(Map)} wrap contextual copies of every delegate while
+ * retaining their original order.</p>
+ *
+ * @since 0.1.0
+ * @author TiJ
+ */
 public final class CompositeLogger implements ILogger {
     private final List<ILogger> delegates;
 
+    /**
+     * Creates a composite logger from the supplied delegates.
+     *
+     * @param delegates loggers that receive every operation
+     * @throws NullPointerException if {@code delegates} or an element
+     *                              is {@code null}
+     * @throws IllegalArgumentException if no delegates are supplied
+     */
     public CompositeLogger(ILogger... delegates) {
         this(Arrays.asList(Objects.requireNonNull(delegates, "delegates")));
     }
 
+    /**
+     * Creates a composite logger from the supplied delegates.
+     *
+     * @param delegates loggers that receive every operation
+     * @throws NullPointerException if {@code delegates} or an element is
+     *         {@code null}
+     * @throws IllegalArgumentException if no delegates are supplied
+     */
     public CompositeLogger(List<ILogger> delegates) {
         Objects.requireNonNull(delegates, "delegates");
 
