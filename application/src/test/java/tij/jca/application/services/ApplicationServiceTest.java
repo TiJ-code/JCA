@@ -3,6 +3,8 @@ package tij.jca.application.services;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tij.jca.application.exceptions.ResourceNotFoundException;
+import tij.jca.application.exceptions.ValidationException;
 import tij.jca.core.entities.ChatRoom;
 import tij.jca.core.entities.Device;
 import tij.jca.core.entities.DeviceType;
@@ -14,7 +16,6 @@ import tij.jca.core.ids.DeviceID;
 import tij.jca.core.ids.MessageID;
 import tij.jca.core.ids.ServerID;
 import tij.jca.core.ids.UserID;
-import tij.jca.core.storage.exceptions.EntityNotFoundException;
 
 import java.time.Instant;
 import java.util.List;
@@ -80,6 +81,44 @@ class ApplicationServiceTest {
     }
 
     @Test
+    void userService_rejectsInvalidArguments() {
+        Device device = new Device(new DeviceID("device-1"), DeviceType.DESKTOP);
+        UserID userId = new UserID("user-1");
+        DeviceID deviceId = new DeviceID("device-1");
+
+        Assertions.assertAll(
+                () -> Assertions.assertThrows(
+                        ValidationException.class,
+                        () -> userService.registerUser(" ", "Alice")
+                ),
+                () -> Assertions.assertThrows(
+                        ValidationException.class,
+                        () -> userService.registerUser("alice", " ")
+                ),
+                () -> Assertions.assertThrows(
+                        ValidationException.class,
+                        () -> userService.findUser(null)
+                ),
+                () -> Assertions.assertThrows(
+                        ValidationException.class,
+                        () -> userService.attachDevice(null, device)
+                ),
+                () -> Assertions.assertThrows(
+                        ValidationException.class,
+                        () -> userService.attachDevice(userId, null)
+                ),
+                () -> Assertions.assertThrows(
+                        ValidationException.class,
+                        () -> userService.detachDevice(null, deviceId)
+                ),
+                () -> Assertions.assertThrows(
+                        ValidationException.class,
+                        () -> userService.detachDevice(userId, null)
+                )
+        );
+    }
+
+    @Test
     void attachDevice_persistsDeviceAndUserRelationship() {
         User user = userService.registerUser("alice", "Alice");
         Device device = new Device(new DeviceID("device-1"), DeviceType.DESKTOP);
@@ -95,8 +134,8 @@ class ApplicationServiceTest {
     void detachDevice_throwsWhenUserMissing() {
         UserID missingUserId = new UserID("missing-user");
 
-        EntityNotFoundException ex = Assertions.assertThrows(
-                EntityNotFoundException.class,
+        ResourceNotFoundException ex = Assertions.assertThrows(
+                ResourceNotFoundException.class,
                 () -> userService.detachDevice(missingUserId, new DeviceID("device-1"))
         );
 
@@ -116,12 +155,50 @@ class ApplicationServiceTest {
     void addUser_throwsWhenServerMissing() {
         ServerID missingServerId = new ServerID("missing-server");
 
-        EntityNotFoundException ex = Assertions.assertThrows(
-                EntityNotFoundException.class,
+        ResourceNotFoundException ex = Assertions.assertThrows(
+                ResourceNotFoundException.class,
                 () -> serverService.addUser(missingServerId, new UserID("user-1"))
         );
 
         Assertions. assertTrue(ex.getMessage().contains("not found"));
+    }
+
+    @Test
+    void serverService_rejectsInvalidArguments() {
+        ServerID serverId = new ServerID("server-1");
+        UserID userId = new UserID("user-1");
+        ConversationID conversationId = new ConversationID("room-1");
+
+        Assertions.assertAll(
+                () -> Assertions.assertThrows(
+                        ValidationException.class,
+                        () -> serverService.createServer(" ")
+                ),
+                () -> Assertions.assertThrows(
+                        ValidationException.class,
+                        () -> serverService.findServer(null)
+                ),
+                () -> Assertions.assertThrows(
+                        ValidationException.class,
+                        () -> serverService.findServersByName(" ")
+                ),
+                () -> Assertions.assertThrows(
+                        ValidationException.class,
+                        () -> serverService.addUser(null, userId)
+                ),
+                () -> Assertions.assertThrows(
+                        ValidationException.class,
+                        () -> serverService.addUser(serverId, null)
+                ),
+                () -> Assertions.assertThrows(
+                        ValidationException.class,
+                        () -> serverService.attachConversation(null, conversationId)
+                ),
+                () -> Assertions.assertThrows(
+                        ValidationException.class,
+                        () -> serverService.attachConversation(serverId, null)
+                )
+        );
     }
 
     @Test
@@ -147,12 +224,42 @@ class ApplicationServiceTest {
     void addUserToChatRoom_throwsWhenRoomMissing() {
         ConversationID missingRoom = new ConversationID("missing-room");
 
-        EntityNotFoundException ex = Assertions.assertThrows(
-                EntityNotFoundException.class,
+        ResourceNotFoundException ex = Assertions.assertThrows(
+                ResourceNotFoundException.class,
                 () -> conversationService.addUser(missingRoom, new UserID("user-1"))
         );
 
         Assertions.assertTrue(ex.getMessage().contains("not found"));
+    }
+
+    @Test
+    void conversationService_rejectsInvalidArguments() {
+        ConversationID conversationId = new ConversationID("room-1");
+        ServerID serverId = new ServerID("server-1");
+        UserID userId = new UserID("user-1");
+
+        Assertions.assertAll(
+                () -> Assertions.assertThrows(
+                        ValidationException.class,
+                        () -> conversationService.createConversation(" ")
+                ),
+                () -> Assertions.assertThrows(
+                        ValidationException.class,
+                        () -> conversationService.findChatRoom(null)
+                ),
+                () -> Assertions.assertThrows(
+                        ValidationException.class,
+                        () -> conversationService.findByServerId(null)
+                ),
+                () -> Assertions.assertThrows(
+                        ValidationException.class,
+                        () -> conversationService.addUser(null, userId)
+                ),
+                () -> Assertions.assertThrows(
+                        ValidationException.class,
+                        () -> conversationService.addUser(conversationId, null)
+                )
+        );
     }
 
     @Test
@@ -206,11 +313,49 @@ class ApplicationServiceTest {
     void deleteMessage_throwsWhenMessageMissing() {
         MessageID missingId = new MessageID("missing-message");
 
-        EntityNotFoundException ex = Assertions.assertThrows(
-                EntityNotFoundException.class,
+        ResourceNotFoundException ex = Assertions.assertThrows(
+                ResourceNotFoundException.class,
                 () -> messageService.deleteMessage(missingId, new ConversationID("room-1"))
         );
 
         Assertions.assertTrue(ex.getMessage().contains("not found"));
+    }
+
+    @Test
+    void messageService_rejectsInvalidArguments() {
+        ConversationID conversationId = new ConversationID("room-1");
+        UserID userId = new UserID("user-1");
+        MessageID messageId = new MessageID("message-1");
+
+        Assertions.assertAll(
+                () -> Assertions.assertThrows(
+                        ValidationException.class,
+                        () -> messageService.sendMessage(null, userId, "hello")
+                ),
+                () -> Assertions.assertThrows(
+                        ValidationException.class,
+                        () -> messageService.sendMessage(conversationId, null, "hello")
+                ),
+                () -> Assertions.assertThrows(
+                        ValidationException.class,
+                        () -> messageService.sendMessage(conversationId, userId, " ")
+                ),
+                () -> Assertions.assertThrows(
+                        ValidationException.class,
+                        () -> messageService.findMessage(null)
+                ),
+                () -> Assertions.assertThrows(
+                        ValidationException.class,
+                        () -> messageService.findMessages(null)
+                ),
+                () -> Assertions.assertThrows(
+                        ValidationException.class,
+                        () -> messageService.deleteMessage(null, conversationId)
+                ),
+                () -> Assertions.assertThrows(
+                        ValidationException.class,
+                        () -> messageService.deleteMessage(messageId, null)
+                )
+        );
     }
 }
