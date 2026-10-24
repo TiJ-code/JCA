@@ -12,6 +12,7 @@ import tij.jca.infrastructure.storage.h2.helper.SQLBuilder;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,7 +55,25 @@ public final class H2MessageRepository extends AbstractH2Repository implements I
                 .where("mapping." + H2DatabaseConstants.COLUMN__MESSAGE_CHATROOM_MAPPING__CHATROOM_ID + " = ?")
                 .orderBy("m." + H2DatabaseConstants.COLUMN__MESSAGES__DATE)
                 .build();
-        return List.of();
+
+        List<Message> messages = new ArrayList<>();
+
+        try (PreparedStatement statement = prepare(sql)) {
+            statement.setString(1, chatRoomId.id());
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    messages.add(readMessage(resultSet));
+                }
+            }
+
+            return List.copyOf(messages);
+        } catch (Exception e) {
+            throw new StorageException(
+                    "Failed to find messages for chatroom.",
+                    e
+            );
+        }
     }
 
     @Override

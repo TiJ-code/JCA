@@ -140,7 +140,7 @@ public final class H2ConversationRepository extends AbstractH2Repository impleme
     public ChatRoom save(ChatRoom chatRoom) {
         logger.debug("Saving conversation '{}'.", chatRoom.id());
         String sql = SQLBuilder
-                .mergeInto(H2DatabaseConstants.COLUMN__CHATROOMS__ID)
+                .mergeInto(H2DatabaseConstants.TABLE__CHAT_ROOMS)
                 .columns(
                         H2DatabaseConstants.COLUMN__CHATROOMS__ID,
                         H2DatabaseConstants.COLUMN__CHATROOMS__NAME
