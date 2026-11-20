@@ -30,7 +30,7 @@ import java.util.Set;
  * @author TiJ
  */
 public final class MigrationRunner {
-    private final tij.jca.core.storage.migration.IMigrationProvider provider;
+    private final IMigrationProvider provider;
     private final IMigrationStateStore stateStore;
 
     /**
@@ -41,7 +41,7 @@ public final class MigrationRunner {
      * @param stateStore the component used to track applied versions
      * @throws NullPointerException if either argument is {@code null}
      */
-    public MigrationRunner(tij.jca.core.storage.migration.IMigrationProvider provider, IMigrationStateStore stateStore) {
+    public MigrationRunner(IMigrationProvider provider, IMigrationStateStore stateStore) {
         this.provider = provider;
         this.stateStore = stateStore;
     }
