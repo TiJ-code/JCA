@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import tij.jca.logging.ILogger;
+import tij.jca.logging.LoggerFactory;
 
 /**
  * Loads H2 SQL migrations from classpath resources.
@@ -26,6 +28,9 @@ import java.util.regex.Pattern;
  * @author TiJ
  */
 public final class H2MigrationProvider implements IMigrationProvider {
+    private static final ILogger LOGGER =
+            LoggerFactory.getLogger(H2MigrationProvider.class);
+
     private static final Pattern MIGRATION_PATTERN = Pattern.compile(
             "^p(\\d+)__([a-zA-Z0-9_-]+)\\.sql$"
     );
@@ -79,6 +84,10 @@ public final class H2MigrationProvider implements IMigrationProvider {
      */
     @Override
     public List<IMigration> getMigrations() {
+        LOGGER.debug(
+                "Loading H2 migrations from index '{}'.",
+                indexResource
+        );
         return load(readIndex());
     }
 
@@ -93,6 +102,11 @@ public final class H2MigrationProvider implements IMigrationProvider {
      */
     public List<IMigration> load(List<String> resourceNames) {
         Objects.requireNonNull(resourceNames, "resourceNames");
+
+        LOGGER.debug(
+                "Loading {} H2 migration resources.",
+                resourceNames.size()
+        );
 
         List<IMigration> migrations = new ArrayList<>();
 
@@ -114,6 +128,7 @@ public final class H2MigrationProvider implements IMigrationProvider {
      * @throws MigrationException if the index is missing, empty, or unreadable
      */
     private List<String> readIndex() {
+        LOGGER.trace("Reading H2 migration index '{}'.", indexResource);
         try (InputStream input = classLoader.getResourceAsStream(indexResource)) {
             if (input == null) {
                 throw new MigrationException(
@@ -143,8 +158,18 @@ public final class H2MigrationProvider implements IMigrationProvider {
                 );
             }
 
+            LOGGER.debug(
+                    "Found {} H2 migration resources in index.",
+                    resources.size()
+            );
+
             return List.copyOf(resources);
         } catch (IOException e) {
+            LOGGER.error(
+                    e,
+                    "Failed to read H2 migration index '{}'.",
+                    indexResource
+            );
             throw new MigrationException(
                     "Failed to read migration index resource: " + indexResource,
                     e
@@ -161,6 +186,7 @@ public final class H2MigrationProvider implements IMigrationProvider {
      *                               the resource cannot be read
      */
     private IMigration loadMigration(String resourceName) {
+        LOGGER.trace("Loading H2 migration resource '{}'.", resourceName);
         String fileName = resourceName.substring(
                 resourceName.lastIndexOf('/') + 1
         );
@@ -208,8 +234,22 @@ public final class H2MigrationProvider implements IMigrationProvider {
                 );
             }
 
-            return new H2SQLMigration(version, description, sql);
+            H2SQLMigration migration =
+                    new H2SQLMigration(version, description, sql);
+
+            LOGGER.debug(
+                    "Loaded H2 migration {} ({}).",
+                    version,
+                    description
+            );
+
+            return migration;
         } catch (IOException e) {
+            LOGGER.error(
+                    e,
+                    "Failed to read H2 migration resource '{}'.",
+                    resource
+            );
             throw new MigrationException(
                     "Failed to read migration resource: " + resource,
                     e

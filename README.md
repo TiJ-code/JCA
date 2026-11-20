@@ -4,6 +4,8 @@
 
 A privacy-focused, self-hostable open-source messenger written in Java.
 
+Please read the [AI usage policy](AI.md) before using AI tools with this repository.
+
 ---
 
 ## About
@@ -40,3 +42,7 @@ JCA aims to provide an alternative:
 JCA is currently in early predevelopment.
 
 At this moment, version 0.1.0 is being discussed with a minimal feature set.
+
+## Documentation
+
+- [Logging guide](docs/logging.md)
