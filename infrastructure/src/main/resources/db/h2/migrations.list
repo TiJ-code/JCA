@@ -8,3 +8,4 @@ p006__create_user_device_mapping.sql
 p007__create_server_chatroom_mapping.sql
 p008__create_user_server_mapping.sql
 p009__create_message_chatroom_mapping.sql
+p010__create_chatroom_user_mapping.sql
