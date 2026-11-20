@@ -3,5 +3,10 @@ tij.jca.core.events.exceptions
 tij.jca.core.ids
 tij.jca.core.storage
 tij.jca.core.storage.exceptions
+tij.jca.core.storage.migration
 tij.jca.core.storage.page
+tij.jca.core.utils
+tij.jca.infrastructure.storage.h2
+tij.jca.infrastructure.storage.h2.helper
+tij.jca.infrastructure.storage.h2.migration
 tij.jca.logging
