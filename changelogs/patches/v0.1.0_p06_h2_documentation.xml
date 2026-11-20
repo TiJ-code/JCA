@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<patch version="1">
+    <topic name="Technical">
+        <component ref="infrastructure">
+            <category name="add">
+                <entry>H2 repository implementations for users, devices, messages, servers, and chat rooms</entry>
+                <entry>repository interfaces for entity persistence and relationship tracking across core domain types</entry>
+            </category>
+            <category name="ref">
+                <entry>Javadoc documentation for H2 repository implementations and shared repository base class</entry>
+                <entry>Javadoc documentation for H2 schema constants and SQL helper builders</entry>
+                <entry>clarified repository and storage-layer intent across chat room, user, device, server, and message persistence code</entry>
+            </category>
+        </component>
+    </topic>
+</patch>

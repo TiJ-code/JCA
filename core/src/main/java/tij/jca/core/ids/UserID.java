@@ -8,4 +8,10 @@ package  tij.jca.core.ids;
  * @author Jakob
  */
 public record UserID(String id) {
+    /**
+     * Creates a user identifier with a randomly generated version 4 UUID.
+     */
+    public UserID() {
+        this(UUIDGen.random());
+    }
 }

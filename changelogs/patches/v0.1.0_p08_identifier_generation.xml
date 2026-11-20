@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<patch version="1">
+    <topic name="Technical">
+        <component ref="core">
+            <category name="add">
+                <entry>version 7 UUID generation for time-ordered message identifiers</entry>
+                <entry>no-argument UUID constructors for core identifier types</entry>
+            </category>
+        </component>
+        <component ref="application">
+            <category name="ref">
+                <entry>service creation workflows to use identifier constructors</entry>
+            </category>
+        </component>
+    </topic>
+</patch>

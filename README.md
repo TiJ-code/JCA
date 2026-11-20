@@ -40,3 +40,7 @@ JCA aims to provide an alternative:
 JCA is currently in early predevelopment.
 
 At this moment, version 0.1.0 is being discussed with a minimal feature set.
+
+## Documentation
+
+- [Logging guide](docs/logging.md)
